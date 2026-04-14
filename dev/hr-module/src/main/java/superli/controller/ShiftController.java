@@ -48,4 +48,45 @@ public class ShiftController {
         return new ArrayList<>(shifts) ;
     }
 
+    public void assignEmployeeToShift(Employee employee ,LocalDate date ,ShiftType shiftType ,Role role){
+        Shift shift = getShift(date, shiftType);
+        if (shift == null) {
+            throw new IllegalArgumentException("Shift does not exist");
+        }
+        if (!employee.isActive()) {
+            throw new IllegalArgumentException("Employee is not active");
+        }
+        if (!employee.hasRole(role)) {
+            throw new IllegalArgumentException("Employee does not have this role");
+        }
+        boolean isMorning = shiftType == ShiftType.MORNING;
+        boolean isEvening = shiftType == ShiftType.EVENING;
+        int day = date.getDayOfWeek().getValue();
+        if (!employee.canWork(day, isMorning, isEvening)){
+            throw new IllegalArgumentException("Employee is not available for this shift");
+        }
+        
+        Integer requiredAmountOfRole = shift.getRequiredRoles().get(role);
+        if(requiredAmountOfRole == null){
+            throw new IllegalArgumentException("This role is not required for this shift");
+        }
+
+        int currentAmountOfRole = 0 ;
+        for(ShiftAssignment shiftAssignment : shift.getAssignments()){
+            if(shiftAssignment.getEmployee().getId() == employee.getId()){
+                throw new IllegalArgumentException("Employee is already assigned to this shift");
+            }
+            if(shiftAssignment.getRole() == role){
+                currentAmountOfRole++ ;
+            }
+        }
+        if(currentAmountOfRole >= requiredAmountOfRole){
+            throw new IllegalArgumentException("The amount of employees for this role is full !");
+        }
+        ShiftAssignment assignment = new ShiftAssignment(employee, role);
+        shift.addAssignment(assignment);
+    }
+
+    
+
 }

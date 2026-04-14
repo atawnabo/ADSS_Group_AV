@@ -35,8 +35,36 @@ public class Shift {
     public void addAssignment(ShiftAssignment assignment){
         assignments.add(assignment);
     }
+    public void removeAssignment(ShiftAssignment assignment){
+        assignments.remove(assignment);
+    }
     public void addRequiredRole(Role role , int amount){
         requiredRoles.put(role, amount);
+    }
+
+    public boolean hasManager(){
+        for(ShiftAssignment assignment : assignments){
+            if(assignment.getRole() == Role.SHIFT_MANAGER){
+                return true ;
+            }
+        }
+        return false ;
+    }
+
+    public boolean isFullyStaffed(){
+        for(Role role : requiredRoles.keySet()){
+            int requiredAmount = requiredRoles.get(role);
+            int currentAmount = 0 ;
+            for(ShiftAssignment assignment : assignments){
+                if(assignment.getRole() == role){
+                    currentAmount++;
+                }
+            }
+            if(currentAmount < requiredAmount) {
+                return false ;
+            }
+        }
+        return true ;
     }
 
 }
