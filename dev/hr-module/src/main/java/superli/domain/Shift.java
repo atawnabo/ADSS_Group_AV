@@ -67,4 +67,8 @@ public class Shift {
         return true ;
     }
 
+    public boolean isShiftValid(){
+        return hasManager() && isFullyStaffed() ;
+    }
+
 }

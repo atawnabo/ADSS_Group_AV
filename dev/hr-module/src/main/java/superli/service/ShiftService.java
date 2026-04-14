@@ -33,4 +33,10 @@ public class ShiftService {
     public List<Shift> getShifts(){
         return shiftController.getShifts();
     }
+
+    public void assignEmployeeToShift(Employee employee ,LocalDate date ,ShiftType shiftType ,Role role){
+        shiftController.assignEmployeeToShift(employee, date, shiftType, role);
+    }
+
+
 }

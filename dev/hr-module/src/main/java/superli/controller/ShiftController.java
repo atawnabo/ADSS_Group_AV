@@ -87,6 +87,6 @@ public class ShiftController {
         shift.addAssignment(assignment);
     }
 
-    
+
 
 }
