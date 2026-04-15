@@ -87,7 +87,7 @@ public class ShiftController {
         if(currentAmountOfRole >= requiredAmountOfRole){
             throw new IllegalArgumentException("The amount of employees for this role is full !");
         }
-       ShiftAssignment assignment = new ShiftAssignment(employee, role, date, shiftType);
+        ShiftAssignment assignment = new ShiftAssignment(employee, role, date, shiftType);
         shift.addAssignment(assignment);
         employee.addShift(assignment);
     }

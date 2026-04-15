@@ -13,12 +13,12 @@ import java.util.Scanner;
 public class ManagerUI {
 
     private final ShiftService shiftService;
-   private final EmployeeService employeeService;
+    private final EmployeeService employeeService;
     private final Scanner scanner;
 
     public ManagerUI(ShiftService shiftService ,EmployeeService employeeService) {
         this.shiftService = shiftService;
-         this.employeeService = employeeService;
+        this.employeeService = employeeService;
         this.scanner = new Scanner(System.in);
     }
 
@@ -32,7 +32,7 @@ public class ManagerUI {
             System.out.println("3. Assign employee to shift");
             System.out.println("4. Check if shift is valid");
             System.out.println("5. Add employee");
-               System.out.println("6. Exit");
+            System.out.println("6. Exit");
             System.out.print("Choose an option: ");
 
             String input = scanner.nextLine();
@@ -50,9 +50,9 @@ public class ManagerUI {
                 case "4":
                     checkShiftValidityUI();
                     break;
-                    case "5":
-                addEmployee();
-                  break;
+                case "5":
+                    addEmployee();
+                    break;
                 case "6":
                     running = false;
                     System.out.println("Exiting Manager Menu...");
@@ -99,9 +99,9 @@ public class ManagerUI {
             int id = Integer.parseInt(scanner.nextLine());
             Employee employee = employeeService.getEmployee(id); 
             if (employee == null) {
-          System.out.println("Employee not found");
-             return;
-              }
+                System.out.println("Employee not found");
+                return;
+            }
 
             shiftService.assignEmployeeToShift(employee, date, shiftType, role);
             System.out.println("Employee assigned successfully.");
@@ -140,7 +140,7 @@ public class ManagerUI {
     }
 
     private Role readRole() {
-        System.out.print("Enter role: ");
+        System.out.print("Enter role (SHIFT_MANAGER/CASHIER/STOCK_KEEPER): ");
         String input = scanner.nextLine().trim().toUpperCase();
         return Role.valueOf(input);
     }

@@ -15,7 +15,7 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
-            System.out.println("\nMain Menu:");
+            System.out.println("\n=== Main Menu ===");
             System.out.println("1. Employee");
             System.out.println("2. Manager");
             System.out.println("3. Exit");
