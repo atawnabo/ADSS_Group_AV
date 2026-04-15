@@ -103,8 +103,9 @@ public class Employee extends User {
         }
 
         for (Availability Availability: availability) {
+            
             if (Availability.getDay() == day) {
-
+                
                 if ((Availability.isMorningShift() && isMorning) ||
                     (Availability.isEveningShift() && isEvening)) {
 
@@ -112,7 +113,7 @@ public class Employee extends User {
                 }
             }
         }
-
+        
         return false;
     }
     public void resetForNewWeek() {

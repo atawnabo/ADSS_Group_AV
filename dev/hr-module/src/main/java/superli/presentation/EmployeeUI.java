@@ -138,6 +138,7 @@ public class EmployeeUI {
     try {
         System.out.print("Enter day (1-7): ");
         int day = Integer.parseInt(scanner.nextLine());
+        day = ((day + 6) % 7 == 0) ? 7 : (day + 6) % 7 ; // because in java monday is 1 ,..., sunday is 7
 
         if (day < 1 || day > 7) {
             System.out.println("Invalid day");

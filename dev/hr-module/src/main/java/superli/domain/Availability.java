@@ -26,7 +26,7 @@ public class Availability {
         public void setEmployeeID(int employeeID) {
             this.employeeID = employeeID;
         }
-        public Integer getDay() {
+        public int getDay() {
             return day;
         }
         public void setDay(Integer day) {
