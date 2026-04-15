@@ -70,19 +70,10 @@ public class Employee extends User {
         roles.remove(role);
     }
 
-    public boolean addShift(Role role) {
-    if (role == null)
-         return false;
-       if (!this.active) { 
-            return false; }
-    if (!roles.contains(role)) {
-        System.out.println("Employee cannot perform this role");
-        return false;
+    public void addShift(ShiftAssignment assignment) {
+    if (assignment != null) {
+        shiftScheduled.add(assignment);
     }
-
-    ShiftAssignment assignment = new ShiftAssignment(this, role);
-    shiftScheduled.add(assignment);
-    return true;
 }
     public boolean removeShift(ShiftAssignment assignment) {
 

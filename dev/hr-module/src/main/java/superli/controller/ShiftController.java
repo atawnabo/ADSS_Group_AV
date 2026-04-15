@@ -42,6 +42,7 @@ public class ShiftController {
             throw new IllegalArgumentException("Shift does not exists");
         }
         shift.addAssignment(assignment);
+     
     }
 
     public List<Shift> getShifts(){
@@ -49,6 +50,9 @@ public class ShiftController {
     }
 
     public void assignEmployeeToShift(Employee employee ,LocalDate date ,ShiftType shiftType ,Role role){
+         if (employee == null) {
+         throw new IllegalArgumentException("Employee not found");
+       }
         Shift shift = getShift(date, shiftType);
         if (shift == null) {
             throw new IllegalArgumentException("Shift does not exist");
@@ -83,8 +87,9 @@ public class ShiftController {
         if(currentAmountOfRole >= requiredAmountOfRole){
             throw new IllegalArgumentException("The amount of employees for this role is full !");
         }
-        ShiftAssignment assignment = new ShiftAssignment(employee, role);
+       ShiftAssignment assignment = new ShiftAssignment(employee, role, date, shiftType);
         shift.addAssignment(assignment);
+        employee.addShift(assignment);
     }
 
 

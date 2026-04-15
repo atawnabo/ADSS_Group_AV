@@ -212,7 +212,6 @@ public class EmployeeController {
         }
 
         employee.setPassword(password);
-        employee.setLoggedIn(true);
         return true;
     }
 

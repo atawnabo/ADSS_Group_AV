@@ -22,4 +22,19 @@ public class EmployeeTerms {
     public Date getStartDate() {
          return startDate;
          }
+ public String getEmploymentType() {
+    return employmentType;
+}
+
+public double getGlobalSalary() {
+    return globalSalary;
+}
+
+public double getHourlySalary() {
+    return hourlySalary;
+}
+
+public int getVacationDays() {
+    return vacationDays;
+}
 }

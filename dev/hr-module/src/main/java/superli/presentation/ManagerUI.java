@@ -1,24 +1,24 @@
 package superli.presentation;
-
-import superli.controller.EmployeeController;
 import superli.domain.Employee;
 import superli.domain.Role;
 import superli.domain.ShiftType;
 import superli.service.EmployeeService;
 import superli.service.ShiftService;
-
+import java.util.Date;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class ManagerUI {
 
     private final ShiftService shiftService;
-    private final EmployeeController employeeController; // we should change it to employeeService when it is ready
+   private final EmployeeService employeeService;
     private final Scanner scanner;
 
-    public ManagerUI(ShiftService shiftService ,EmployeeController employeeController) {
+    public ManagerUI(ShiftService shiftService ,EmployeeService employeeService) {
         this.shiftService = shiftService;
-        this.employeeController = employeeController; // we should change it to employeeService when it is ready
+         this.employeeService = employeeService;
         this.scanner = new Scanner(System.in);
     }
 
@@ -31,7 +31,8 @@ public class ManagerUI {
             System.out.println("2. Add required role");
             System.out.println("3. Assign employee to shift");
             System.out.println("4. Check if shift is valid");
-            System.out.println("5. Exit");
+            System.out.println("5. Add employee");
+               System.out.println("6. Exit");
             System.out.print("Choose an option: ");
 
             String input = scanner.nextLine();
@@ -49,7 +50,10 @@ public class ManagerUI {
                 case "4":
                     checkShiftValidityUI();
                     break;
-                case "5":
+                    case "5":
+                addEmployee();
+                  break;
+                case "6":
                     running = false;
                     System.out.println("Exiting Manager Menu...");
                     break;
@@ -93,7 +97,11 @@ public class ManagerUI {
 
             System.out.print("Enter employee id: ");
             int id = Integer.parseInt(scanner.nextLine());
-            Employee employee = employeeController.getEmployee(id); // we should change it to employeeService when it is ready
+            Employee employee = employeeService.getEmployee(id); 
+            if (employee == null) {
+          System.out.println("Employee not found");
+             return;
+              }
 
             shiftService.assignEmployeeToShift(employee, date, shiftType, role);
             System.out.println("Employee assigned successfully.");
@@ -147,7 +155,56 @@ public class ManagerUI {
 
         return value;
     }
+    private void addEmployee() {
+    try {
+    
+        System.out.print("Enter ID: ");
+        int id = Integer.parseInt(scanner.nextLine());
 
+        System.out.print("Enter name: ");
+        String name = scanner.nextLine();
+
+        System.out.print("Enter bank name: ");
+        String bankName = scanner.nextLine();
+
+        System.out.print("Enter account number: ");
+        int accountNumber = Integer.parseInt(scanner.nextLine());
+
+        System.out.print("Enter employment type (hourly/global): ");
+        String employmentType = scanner.nextLine();
+
+        System.out.print("Enter hourly salary: ");
+        double hourlySalary = Double.parseDouble(scanner.nextLine());
+
+        System.out.print("Enter global salary: ");
+        double globalSalary = Double.parseDouble(scanner.nextLine());
+
+        System.out.print("Enter vacation days: ");
+        int vacationDays = Integer.parseInt(scanner.nextLine());
+        List<Role> roles = new ArrayList<>();
+
+        while (true) {
+            System.out.print("Enter role (CASHIER / SHIFT_MANAGER / STOCK_KEEPER) or 'done': ");
+            String input = scanner.nextLine().toUpperCase();
+
+            if (input.equals("DONE")) 
+                break;
+
+            roles.add(Role.valueOf(input));
+        }
+
+        Employee employee = employeeService.addEmployee(id,name,bankName,accountNumber,roles,new Date(),employmentType,globalSalary,hourlySalary,vacationDays);
+
+        if (employee != null) {
+            System.out.println("Employee added successfully");
+        } else {
+            System.out.println("Employee already exists");
+        }
+
+    } catch (Exception e) {
+        System.out.println("Error: " + e.getMessage());
+    }
+}
    
     
 }
