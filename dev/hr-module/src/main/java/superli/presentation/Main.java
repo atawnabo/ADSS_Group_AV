@@ -11,7 +11,7 @@ public class Main {
 
         EmployeeUI employeeUI = new EmployeeUI(employeeService);
         ManagerUI managerUI = new ManagerUI(shiftService, employeeService);
-
+    
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
@@ -19,6 +19,7 @@ public class Main {
             System.out.println("1. Employee");
             System.out.println("2. Manager");
             System.out.println("3. Exit");
+            System.out.print("Choose an option: ");
 
             String input = scanner.nextLine();
 
@@ -27,7 +28,11 @@ public class Main {
                     employeeUI.showMenu();
                     break;
                 case "2":
-                    managerUI.showMenu();
+                    if(managerUI.hasAccess(scanner)){
+                        managerUI.showMenu();
+                    }else{
+                        System.out.println("Access denied.");
+                    }
                     break;
                 case "3":
                     return;

@@ -1,6 +1,8 @@
 package superli.presentation;
 import superli.domain.Employee;
 import superli.domain.Role;
+import superli.domain.Shift;
+import superli.domain.ShiftAssignment;
 import superli.domain.ShiftType;
 import superli.service.EmployeeService;
 import superli.service.ShiftService;
@@ -15,11 +17,18 @@ public class ManagerUI {
     private final ShiftService shiftService;
     private final EmployeeService employeeService;
     private final Scanner scanner;
+    private final String MANAGER_ACCESS_CODE = "9999";
 
     public ManagerUI(ShiftService shiftService ,EmployeeService employeeService) {
         this.shiftService = shiftService;
         this.employeeService = employeeService;
         this.scanner = new Scanner(System.in);
+    }
+
+    public boolean hasAccess(Scanner scanner) {
+        System.out.print("Enter manager access code: ");
+        String code = scanner.nextLine();
+        return MANAGER_ACCESS_CODE.equals(code);
     }
 
     public void showMenu() {
@@ -32,7 +41,8 @@ public class ManagerUI {
             System.out.println("3. Assign employee to shift");
             System.out.println("4. Check if shift is valid");
             System.out.println("5. Add employee");
-            System.out.println("6. Exit");
+            System.out.println("6. View shifts");
+            System.out.println("7. Exit");
             System.out.print("Choose an option: ");
 
             String input = scanner.nextLine();
@@ -54,6 +64,9 @@ public class ManagerUI {
                     addEmployee();
                     break;
                 case "6":
+                    viewShifts();
+                    break;    
+                case "7":
                     running = false;
                     System.out.println("Exiting Manager Menu...");
                     break;
@@ -205,6 +218,34 @@ public class ManagerUI {
         System.out.println("Error: " + e.getMessage());
     }
 }
+
+private void viewShifts() {
+    List<Shift> shifts = shiftService.getShifts();
+
+    if (shifts.isEmpty()) {
+        System.out.println("No shifts found.");
+        return;
+    }
+
+    for (Shift shift : shifts) {
+        System.out.println("---------------------------------");
+        System.out.println("Date: " + shift.getDate());
+        System.out.println("Shift type: " + shift.getShiftType());
+        System.out.println("Required roles: " + shift.getRequiredRoles());
+        System.out.println("Assignments:");
+
+        if (shift.getAssignments().isEmpty()) {
+            System.out.println("  No employees assigned.");
+        } else {
+            for (ShiftAssignment assignment : shift.getAssignments()) {
+                System.out.println("  Employee ID: " + assignment.getEmployee().getId()
+                        + " | Name: " + assignment.getEmployee().getName()
+                        + " | Role: " + assignment.getRole());
+            }
+        }
+
+        System.out.println("Valid: " + shift.isShiftValid());
+    }
+}
    
-    
 }
