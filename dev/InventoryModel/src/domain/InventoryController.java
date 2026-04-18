@@ -10,7 +10,7 @@ public class InventoryController {
     private final CategoryController categoryController;
     private final DiscountController discountController;
     private final Map<Integer, ItemType> itemTypes;
-    private final Map<ItemType, List<Item>> itemInstances;
+    private final Map<ItemType, List<Item>> items;
     private final Map<ItemType, List<SupplierDiscountHistory>> supplierDiscountHistory;
     private int itemTypeIdCounter;
     private int itemIdCounter;
@@ -20,7 +20,7 @@ public class InventoryController {
         this.discountController = new DiscountController();
         this.supplierDiscountHistory = new HashMap<>();
         this.itemTypes = new HashMap<>();
-        this.itemInstances = new HashMap<>();
+        this.items = new HashMap<>();
         this.itemTypeIdCounter = 1;
         this.itemIdCounter = 1;
     }
