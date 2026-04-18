@@ -147,11 +147,11 @@ public class EmployeeUI {
 
         System.out.print("Morning shift? (yes/no): ");
         String inputMorning = scanner.nextLine();
-        boolean morning = inputMorning.equalsIgnoreCase("y");
+        boolean morning = inputMorning.equalsIgnoreCase("yes");
 
         System.out.print("Evening shift? (yes/no): ");
         String inputEvening = scanner.nextLine();
-        boolean evening = inputEvening.equalsIgnoreCase("y");
+        boolean evening = inputEvening.equalsIgnoreCase("yes");
 
         if (service.enterAvailability(loggedInId, day, morning, evening)) {
             System.out.println("Availability saved");

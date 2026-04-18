@@ -34,9 +34,7 @@ public class ShiftService {
         return shiftController.getShifts();
     }
 
-    public void assignEmployeeToShift(Employee employee ,LocalDate date ,ShiftType shiftType ,Role role){
-        shiftController.assignEmployeeToShift(employee, date, shiftType, role);
+    public void assignEmployeeToShift(Employee employee ,LocalDate date ,ShiftType shiftType ,Role role,boolean specialApproval){
+        shiftController.assignEmployeeToShift(employee, date, shiftType, role,specialApproval);
     }
-
-
 }

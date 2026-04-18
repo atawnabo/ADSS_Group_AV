@@ -149,39 +149,6 @@ public class EmployeeController {
         return !getAvailableEmployees(Role.SHIFT_MANAGER, day, isMorning, isEvening).isEmpty();
     }
 
-   //// public boolean assignEmployeeToShift(int employeeId, Role role) {
-    //    Employee employee = employees.get(employeeId);
-
-        //if (employee == null || !employee.isActive()) {
-         //   System.out.println("Employee not available");
-          //  return false;
-        //}
-
-       // return employee.addShift(role);
-  //  }
-
-   // public boolean removeEmployeeFromShift(int employeeId, ShiftAssignment assignment) {
-       // Employee employee = employees.get(employeeId);
-
-       // if (employee == null) {
-          //  System.out.println("Employee not found");
-          //  return false;
-        //}
-
-        //return employee.removeShift(assignment);
-    //}
-
-    //public List<ShiftAssignment> getShiftHistory(int employeeId) {
-      //  Employee employee = employees.get(employeeId);
-
-        //if (employee == null) {
-          //  System.out.println("Employee not found");
-           // return new ArrayList<>();
-       // }
-
-       // return employee.getShiftHistory();
-   // }
-
     public List<Role> getEmployeeRoles(int employeeId) {
         Employee employee = employees.get(employeeId);
 

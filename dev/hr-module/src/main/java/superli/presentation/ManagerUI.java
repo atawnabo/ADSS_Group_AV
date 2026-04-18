@@ -66,6 +66,7 @@ public class ManagerUI {
                 case "6":
                     viewShifts();
                     break;    
+                    
                 case "7":
                     running = false;
                     System.out.println("Exiting Manager Menu...");
@@ -115,8 +116,9 @@ public class ManagerUI {
                 System.out.println("Employee not found");
                 return;
             }
-
-            shiftService.assignEmployeeToShift(employee, date, shiftType, role);
+         System.out.print("Special approval? (yes/no): ");
+        boolean specialApproval = scanner.nextLine().equalsIgnoreCase("yes");
+            shiftService.assignEmployeeToShift(employee, date, shiftType, role,specialApproval);
             System.out.println("Employee assigned successfully.");
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());

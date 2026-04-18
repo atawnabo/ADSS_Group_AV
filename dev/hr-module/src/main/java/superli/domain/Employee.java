@@ -96,28 +96,23 @@ public class Employee extends User {
     }
 
     
-    public boolean canWork(int day, boolean isMorning, boolean isEvening) {
+   public boolean canWork(int day, boolean isMorning, boolean isEvening) {
 
-        if (availability == null || availability.isEmpty()) {
-            return true;
-        }
-
-        for (Availability Availability: availability) {
-            
-            if (Availability.getDay() == day) {
-                
-                if ((Availability.isMorningShift() && isMorning) ||
-                    (Availability.isEveningShift() && isEvening)) {
-
-                    return true;
-                }
-            }
-        }
-        
-        return false;
+    if (availability == null || availability.isEmpty()) {
+        return true;
     }
+
+    for (Availability av : availability) {
+        if (av.getDay() == day) {
+            return (av.isMorningShift() && isMorning) ||
+                   (av.isEveningShift() && isEvening);
+        }
+    }
+
+    return true; 
+}
+
     public void resetForNewWeek() {
-      //  shiftHistory.addAll(shiftScheduled);
         shiftScheduled.clear();
         availability.clear();
     }

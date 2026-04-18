@@ -49,7 +49,7 @@ public class ShiftController {
         return new ArrayList<>(shifts) ;
     }
 
-    public void assignEmployeeToShift(Employee employee ,LocalDate date ,ShiftType shiftType ,Role role){
+    public void assignEmployeeToShift(Employee employee ,LocalDate date ,ShiftType shiftType ,Role role,boolean specialApproval){
          if (employee == null) {
          throw new IllegalArgumentException("Employee not found");
        }
@@ -66,7 +66,7 @@ public class ShiftController {
         boolean isMorning = shiftType == ShiftType.MORNING;
         boolean isEvening = shiftType == ShiftType.EVENING;
         int day = date.getDayOfWeek().getValue();
-        if (!employee.canWork(day, isMorning, isEvening)){
+        if (!employee.canWork(day, isMorning, isEvening)&&!specialApproval){
             throw new IllegalArgumentException("Employee is not available for this shift");
         }
         
@@ -91,7 +91,7 @@ public class ShiftController {
         shift.addAssignment(assignment);
         employee.addShift(assignment);
     }
-
+    
 
 
 }
