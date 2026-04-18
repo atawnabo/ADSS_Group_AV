@@ -1,6 +1,6 @@
+package domain;
 import java.time.LocalDate;
 import java.util.List;
-
 public class CategoryDiscount extends Discount {
 
     private List<Category> targetCategories;

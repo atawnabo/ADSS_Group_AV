@@ -1,6 +1,8 @@
+package domain;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Category {
     private int id;
@@ -9,14 +11,27 @@ public class Category {
     private List<Category> children;
 
     public Category(int id, String name) {
+        if (id < 0) {
+            throw new IllegalArgumentException("ID must be non-negative");
+        }
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Name cannot be empty");
+        }
+
         this.id = id;
         this.name = name;
         this.parent = null;
         this.children = new ArrayList<>();
     }
 
-    // child category (has parent)
     public Category(int id, String name, Category parent) {
+        if (id < 0) {
+            throw new IllegalArgumentException("ID must be non-negative");
+        }
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Name cannot be empty");
+        }
+
         this.id = id;
         this.name = name;
         this.parent = parent;
@@ -24,22 +39,26 @@ public class Category {
     }
 
     public List<Category> getCategoryPath() {
-    List<Category> path = new ArrayList<>();
-    if (parent != null) {
-        path.addAll(parent.getCategoryPath()); 
+        List<Category> path = new ArrayList<>();
+        if (parent != null) {
+            path.addAll(parent.getCategoryPath());
+        }
+        path.add(this);
+        return path;
     }
-    path.add(this);
-    return path;
-    }
- 
+
     public boolean isLeaf() {
         return children.isEmpty();
     }
 
     public void addChild(Category child) {
-        children.add(child);
+        if (child == null) {
+            throw new IllegalArgumentException("Child category cannot be null");
+        }
+        if (!children.contains(child)) {
+            children.add(child);
+        }
     }
-
 
     public int getId() {
         return id;
@@ -54,6 +73,24 @@ public class Category {
     }
 
     public List<Category> getChildren() {
-        return children;
+        return new ArrayList<>(children);
+    }
+
+    @Override
+    public String toString() {
+        return "Category{id=" + id + ", name='" + name + "'}";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Category)) return false;
+        Category category = (Category) o;
+        return id == category.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

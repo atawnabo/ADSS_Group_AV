@@ -1,5 +1,7 @@
+package domain;
+
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale.Category;
 import java.util.Objects;
 
 public class ItemType {
@@ -13,6 +15,7 @@ public class ItemType {
     private int sellingPrice;
     private Category category;
     private String manufacturer;
+    private List<SupplierDiscountHistory> discountHistory;
 
     public ItemType(int id, String name, Location storeLocation,
                     int shelfQuantity, int warehouseQuantity, int minQuantity,
@@ -22,27 +25,21 @@ public class ItemType {
         if (id < 0) {
             throw new IllegalArgumentException("ID must be non-negative");
         }
-
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Name cannot be null or empty");
         }
-
         if (storeLocation == null) {
             throw new IllegalArgumentException("Store location cannot be null");
         }
-
         if (shelfQuantity < 0 || warehouseQuantity < 0) {
             throw new IllegalArgumentException("Quantities must be non-negative");
         }
-
         if (minQuantity < 0) {
             throw new IllegalArgumentException("Minimum quantity must be non-negative");
         }
-
         if (costPrice < 0 || sellingPrice < 0) {
             throw new IllegalArgumentException("Prices must be non-negative");
         }
-
         if (manufacturer == null || manufacturer.trim().isEmpty()) {
             throw new IllegalArgumentException("Manufacturer cannot be null or empty");
         }
@@ -57,6 +54,7 @@ public class ItemType {
         this.sellingPrice = sellingPrice;
         this.category = category;
         this.manufacturer = manufacturer;
+        this.discountHistory = new ArrayList<>();
     }
 
     public int getId() {
@@ -164,7 +162,6 @@ public class ItemType {
         if (amount < 0) {
             throw new IllegalArgumentException("Amount must be non-negative");
         }
-
         if (amount > warehouseQuantity) {
             throw new IllegalArgumentException("Not enough items in warehouse");
         }
@@ -194,6 +191,17 @@ public class ItemType {
         warehouseQuantity -= amount;
     }
 
+    public void addSupplierDiscount(SupplierDiscountHistory history) {
+        if (history == null) {
+            throw new IllegalArgumentException("History cannot be null");
+        }
+        discountHistory.add(history);
+    }
+
+    public List<SupplierDiscountHistory> getDiscountHistory() {
+        return new ArrayList<>(discountHistory);
+    }
+
     @Override
     public String toString() {
         return "ItemType{" +
@@ -202,6 +210,7 @@ public class ItemType {
                 ", shelfQuantity=" + shelfQuantity +
                 ", warehouseQuantity=" + warehouseQuantity +
                 ", minQuantity=" + minQuantity +
+                ", manufacturer='" + manufacturer + '\'' +
                 '}';
     }
 
@@ -217,15 +226,4 @@ public class ItemType {
     public int hashCode() {
         return Objects.hash(id);
     }
-      double getSellPrice() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-    
-    void addSupplierDiscount(SupplierDiscountHistory history) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    List<SupplierDiscountHistory> getDiscountHistory() {
-        throw new UnsupportedOperationException("Not supported yet.");
-}
 }

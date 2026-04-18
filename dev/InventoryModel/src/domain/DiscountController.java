@@ -1,3 +1,4 @@
+package domain;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -72,7 +73,7 @@ public class DiscountController {
     public double getFinalPrice(ItemType item) {
         List<Discount> activeDiscounts = getActiveDiscountsForItem(item);
         if (activeDiscounts.isEmpty())
-            return item.getSellPrice();
+            return item.getSellingPrice();
 
         Discount bestDiscount = activeDiscounts.get(0);
         for (Discount d : activeDiscounts) {
