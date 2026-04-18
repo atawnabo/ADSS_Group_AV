@@ -66,7 +66,6 @@ public class ManagerUI {
                 case "6":
                     viewShifts();
                     break;    
-                    
                 case "7":
                     running = false;
                     System.out.println("Exiting Manager Menu...");
@@ -185,15 +184,24 @@ public class ManagerUI {
         System.out.print("Enter account number: ");
         int accountNumber = Integer.parseInt(scanner.nextLine());
 
-        System.out.print("Enter employment type (hourly/global): ");
+          System.out.print("Enter employment type (hourly/global): ");
         String employmentType = scanner.nextLine();
 
-        System.out.print("Enter hourly salary: ");
-        double hourlySalary = Double.parseDouble(scanner.nextLine());
+        double hourlySalary = 0;
+        double globalSalary = 0;
 
-        System.out.print("Enter global salary: ");
-        double globalSalary = Double.parseDouble(scanner.nextLine());
-
+        if (employmentType.equalsIgnoreCase("hourly")) {
+            System.out.print("Enter hourly salary: ");
+            hourlySalary = Double.parseDouble(scanner.nextLine());
+        } 
+        else if (employmentType.equalsIgnoreCase("global")) {
+            System.out.print("Enter global salary: ");
+            globalSalary = Double.parseDouble(scanner.nextLine());
+        } 
+        else {
+            System.out.println("Invalid employment type");
+            return;
+        }
         System.out.print("Enter vacation days: ");
         int vacationDays = Integer.parseInt(scanner.nextLine());
         List<Role> roles = new ArrayList<>();
