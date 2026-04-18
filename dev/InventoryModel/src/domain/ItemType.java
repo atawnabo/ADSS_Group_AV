@@ -1,3 +1,4 @@
+import java.util.List;
 import java.util.Locale.Category;
 import java.util.Objects;
 
@@ -216,4 +217,15 @@ public class ItemType {
     public int hashCode() {
         return Objects.hash(id);
     }
+      double getSellPrice() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    void addSupplierDiscount(SupplierDiscountHistory history) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    List<SupplierDiscountHistory> getDiscountHistory() {
+        throw new UnsupportedOperationException("Not supported yet.");
+}
 }
