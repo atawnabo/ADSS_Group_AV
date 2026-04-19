@@ -10,11 +10,10 @@ import domain.ItemType;
 import domain.Location;
 import domain.PurchasingReport;
 import domain.SupplierDiscountHistory;
-import service.ServiceController;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import service.ServiceController;
 
 public class PresentationController {
     private final ServiceController serviceController;
@@ -26,11 +25,11 @@ public class PresentationController {
     // ==================== CATEGORY ====================
 
     public String addCategory(String name) {
-        return serviceController.getCategoryController().addCategory(name);
+        return serviceController.getCategoryController().addRootCategory(name);
     }
 
     public String addCategory(String name, int parentId) {
-        return serviceController.getCategoryController().addCategory(name, parentId);
+        return serviceController.getCategoryController().addSubCategory(name, parentId);
     }
 
     public List<Category> getAllCategories() {

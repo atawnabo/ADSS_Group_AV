@@ -1,5 +1,12 @@
 package presentation;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+
 import domain.Alert;
 import domain.Category;
 import domain.CategoryInventoryReport;
@@ -10,69 +17,66 @@ import domain.ItemType;
 import domain.Location;
 import domain.PurchasingReport;
 import domain.SupplierDiscountHistory;
+import init.DataLoader;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
 
 public class CLI {
+
     private final PresentationController controller;
-    private final Scanner scanner;
+private final Scanner scanner;
+private final DataLoader dataLoader;
 
-    public CLI() {
-        this.controller = new PresentationController();
-        this.scanner = new Scanner(System.in);
+public CLI() {
+    this.controller = new PresentationController();
+    this.scanner = new Scanner(System.in);
+    this.dataLoader = new DataLoader(controller);
+}
+
+public static void main(String[] args) {
+    CLI cli = new CLI();
+    cli.start();
+}
+
+public void start() {
+    boolean running = true;
+
+    System.out.println("==================================");
+    System.out.println(" Welcome to Inventory Management ");
+    System.out.println("==================================");
+
+    // ask user to load sample data
+    System.out.println("\n1. Load sample data");
+    System.out.println("2. Start empty");
+    int loadChoice = readInt("Choose: ");
+
+    if (loadChoice == 1) {
+        dataLoader.load();
+        System.out.println("✓ Sample data loaded successfully");
+    } else {
+        System.out.println("✓ Starting with empty system");
     }
 
-    public static void main(String[] args) {
-        CLI cli = new CLI();
-        cli.start();
-    }
+    while (running) {
+        printMainMenu();
+        int choice = readInt("Choose an option: ");
 
-    public void start() {
-        boolean running = true;
-
-        System.out.println("==================================");
-        System.out.println(" Welcome to Inventory Management ");
-        System.out.println("==================================");
-
-        while (running) {
-            printMainMenu();
-            int choice = readInt("Choose an option: ");
-
-            switch (choice) {
-                case 1:
-                    categoryMenu();
-                    break;
-                case 2:
-                    itemTypeMenu();
-                    break;
-                case 3:
-                    itemMenu();
-                    break;
-                case 4:
-                    discountMenu();
-                    break;
-                case 5:
-                    reportMenu();
-                    break;
-                case 6:
-                    alertMenu();
-                    break;
-                case 0:
-                    running = false;
-                    System.out.println("Exiting system...");
-                    break;
-                default:
-                    System.out.println("Invalid option.");
+        switch (choice) {
+            case 1 -> categoryMenu();
+            case 2 -> itemTypeMenu();
+            case 3 -> itemMenu();
+            case 4 -> discountMenu();
+            case 5 -> reportMenu();
+            case 6 -> alertMenu();
+            case 0 -> {
+                running = false;
+                System.out.println("Exiting system...");
             }
+            default -> System.out.println("Invalid option.");
         }
-
-        scanner.close();
     }
+
+    scanner.close();
+}
 
     private void printMainMenu() {
         System.out.println("\n========== MAIN MENU ==========");
@@ -88,17 +92,17 @@ public class CLI {
     // =========================================================
     // CATEGORY MENU
     // =========================================================
-
     private void categoryMenu() {
         boolean back = false;
 
         while (!back) {
-            System.out.println("\n------ Category Menu ------");
+            System.out.println("\n====== Category Menu ======");
             System.out.println("1. Add root category");
             System.out.println("2. Add sub-category");
             System.out.println("3. Show all categories");
             System.out.println("4. Show category by ID");
             System.out.println("5. Show root categories");
+            System.out.println("6. Show category tree");
             System.out.println("0. Back");
 
             int choice = readInt("Choose an option: ");
@@ -119,6 +123,9 @@ public class CLI {
                 case 5:
                     showRootCategories();
                     break;
+                case 6:
+                    viewCategoryTree();
+                    break;
                 case 0:
                     back = true;
                     break;
@@ -129,28 +136,58 @@ public class CLI {
     }
 
     private void addRootCategory() {
-        String name = readLine("Enter category name: ");
+        System.out.print("Enter category name: ");
+        String name = scanner.nextLine();
         String result = controller.addCategory(name);
-        System.out.println(result);
+        System.out.println(result.equals("OK")
+                ? "Category '" + name + "' added successfully"
+                : result);
     }
 
     private void addSubCategory() {
-        String name = readLine("Enter sub-category name: ");
-        int parentId = readInt("Enter parent category ID: ");
-        String result = controller.addCategory(name, parentId);
-        System.out.println(result);
-    }
-
-    private void showAllCategories() {
-        List<Category> categories = controller.getAllCategories();
-        if (categories.isEmpty()) {
-            System.out.println("No categories found.");
+        List<Category> cats = controller.getAllCategories();
+        if (cats.isEmpty()) {
+            System.out.println("No categories exist. Add a root category first.");
             return;
         }
 
-        for (Category category : categories) {
-            System.out.println(category);
+        // show all categories for parent selection
+        System.out.println("\nSelect parent category:");
+        for (Category cat : cats) {
+            System.out.println(cat.getId() + ". " + cat.getFullPath());
         }
+
+        System.out.print("Enter parent number: ");
+        int parentId = scanner.nextInt();
+        scanner.nextLine();
+
+        // validate parent exists
+        Category parent = controller.getCategoryById(parentId);
+        if (parent == null) {
+            System.out.println("ERROR: category not found");
+            return;
+        }
+
+        System.out.print("Enter sub-category name: ");
+        String name = scanner.nextLine();
+
+        String result = controller.addCategory(name, parentId);
+        System.out.println(result.equals("OK")
+                ? "Sub-category '" + name + "' added under '" + parent.getFullPath() + "'"
+                : result);
+    }
+
+    private void showAllCategories() {
+        List<Category> cats = controller.getAllCategories();
+        if (cats.isEmpty()) {
+            System.out.println("No categories exist.");
+            return;
+        }
+        System.out.println("\n====== CATEGORIES ======");
+        for (Category cat : cats) {
+            System.out.println(cat.getId() + ". " + cat.getFullPath());
+        }
+        System.out.println("========================");
     }
 
     private void showCategoryById() {
@@ -167,24 +204,75 @@ public class CLI {
     private void showRootCategories() {
         List<Category> categories = controller.getRootCategories();
         if (categories.isEmpty()) {
-            System.out.println("No root categories found.");
+            System.out.println("No root categories exist.");
             return;
         }
-
-        for (Category category : categories) {
-            System.out.println(category);
+        System.out.println("\n====== ROOT CATEGORIES ======");
+        for (Category cat : categories) {
+            System.out.println(cat.getId() + ". " + cat.getName());
         }
+        System.out.println("=============================");
+    }
+
+    public void viewCategoryTree() {
+        List<Category> roots = controller.getRootCategories();
+        if (roots.isEmpty()) {
+            System.out.println("No categories exist.");
+            return;
+        }
+        System.out.println("\n====== CATEGORY TREE ======");
+        for (Category root : roots) {
+            printTree(root, "");
+        }
+        System.out.println("===========================");
+    }
+
+    private void printTree(Category cat, String indent) {
+        System.out.println(indent + cat.getName());
+        for (Category child : cat.getChildren()) {
+            printTree(child, indent + "  ");
+        }
+    }
+
+    public int selectCategory() {
+        List<Category> cats = controller.getAllCategories();
+        if (cats.isEmpty()) {
+            System.out.println("No categories exist.");
+            return -1;
+        }
+
+        System.out.println("\nAvailable categories:");
+        for (Category cat : cats) {
+            System.out.println(cat.getId() + ". " + cat.getFullPath());
+        }
+        System.out.println("0. Cancel");
+        System.out.print("Choose category: ");
+
+        int id = scanner.nextInt();
+        scanner.nextLine();
+
+        if (id == 0) {
+            return -1;
+        }
+
+        Category selected = controller.getCategoryById(id);
+        if (selected == null) {
+            System.out.println("ERROR: category not found");
+            return -1;
+        }
+
+        System.out.println("Selected: " + selected.getFullPath());
+        return id;
     }
 
     // =========================================================
     // ITEM TYPE MENU
     // =========================================================
-
     private void itemTypeMenu() {
         boolean back = false;
 
         while (!back) {
-            System.out.println("\n------ ItemType Menu ------");
+            System.out.println("\n====== ItemType Menu ======");
             System.out.println("1. Add item type");
             System.out.println("2. Show all item types");
             System.out.println("3. Show item type by ID");
@@ -220,14 +308,23 @@ public class CLI {
     }
 
     private void addItemType() {
+        System.out.println("\n====== Add Item Type ======");
+
         String name = readLine("Enter item type name: ");
         int shelfNum = readInt("Enter store shelf number: ");
         int aisleNum = readInt("Enter store aisle number: ");
         int minQuantity = readInt("Enter minimum quantity: ");
         int costPrice = readInt("Enter cost price: ");
         int sellingPrice = readInt("Enter selling price: ");
-        int categoryId = readInt("Enter category ID: ");
         String manufacturer = readLine("Enter manufacturer: ");
+
+        // use selectCategory() instead of manual ID entry
+        System.out.println("\nSelect a category for this item:");
+        int categoryId = selectCategory();
+        if (categoryId == -1) {
+            System.out.println("Cancelled. Item type not added.");
+            return;
+        }
 
         int id = controller.addItemType(
                 name,
@@ -242,7 +339,13 @@ public class CLI {
         if (id == -1) {
             System.out.println("Failed to add item type. Category not found.");
         } else {
-            System.out.println("ItemType added successfully. New ID: " + id);
+            System.out.println("\nItem type added successfully!");
+            System.out.println("  Name:     " + name);
+            System.out.println("  ID:       " + id);
+            System.out.println("  Category: " + controller.getCategoryById(categoryId).getFullPath());
+            System.out.println("  Min Qty:  " + minQuantity);
+            System.out.println("  Cost:     " + costPrice);
+            System.out.println("  Price:    " + sellingPrice);
         }
     }
 
@@ -295,7 +398,6 @@ public class CLI {
     // =========================================================
     // ITEM MENU
     // =========================================================
-
     private void itemMenu() {
         boolean back = false;
 
@@ -360,7 +462,16 @@ public class CLI {
     }
 
     private void addItem() {
-        int itemTypeId = readInt("Enter item type ID: ");
+        System.out.println("\n====== ADD ITEM ======");
+
+        // select item type
+        System.out.println("\n====== SELECT ITEM TYPE ======");
+        int itemTypeId = selectItemType();
+        if (itemTypeId == -1) {
+            System.out.println("Cancelled. Item not added.");
+            return;
+        }
+
         int sellDiscount = readInt("Enter sell discount (%): ");
         int buyDiscount = readInt("Enter buy discount (%): ");
         LocalDate expirationDate = readOptionalDate("Enter expiration date (yyyy-mm-dd) or leave empty: ");
@@ -377,9 +488,11 @@ public class CLI {
         );
 
         if (itemId == -1) {
-            System.out.println("Failed to add item. ItemType not found.");
+            System.out.println("==============================");
+            System.out.println("ERROR: Item type not found.");
+            System.out.println("==============================");
         } else {
-            System.out.println("Item added successfully. New ID: " + itemId);
+            System.out.println("\n====== ITEM ADDED ======");
         }
     }
 
@@ -464,24 +577,60 @@ public class CLI {
         boolean success = controller.removeItem(itemId);
         System.out.println(success ? "Item removed." : "Item not found.");
     }
+public int selectItemType() {
+    List<ItemType> itemTypes = controller.getAllItemTypes();
+    if (itemTypes.isEmpty()) {
+        System.out.println("No item types exist.");
+        return -1;
+    }
+
+    System.out.println("\n====== AVAILABLE ITEM TYPES ======");
+    for (ItemType type : itemTypes) {
+        System.out.println(type.getId() + ". " + type.getName()
+                + " | Category: " + type.getCategory().getFullPath()
+                + " | Price: " + type.getSellingPrice());
+    }
+    System.out.println("----------------------------------");
+    System.out.println("  -1. Done selecting");
+    System.out.println("==================================");
+    System.out.print("Choose item type (-1 to finish): ");
+
+    int id = scanner.nextInt();
+    scanner.nextLine();
+
+    if (id == -1) {
+        return -1;
+    }
+
+    ItemType selected = controller.getItemTypeById(id);
+    if (selected == null) {
+        System.out.println("ERROR: item type not found");
+        return -1;
+    }
+
+    System.out.println("Selected: " + selected.getName());
+    return id;
+}
 
     // =========================================================
-    // DISCOUNT MENU
-    // =========================================================
-
+// DISCOUNT MENU
+// =========================================================
     private void discountMenu() {
         boolean back = false;
 
         while (!back) {
-            System.out.println("\n------ Discount Menu ------");
-            System.out.println("1. Add item discount");
-            System.out.println("2. Add category discount");
-            System.out.println("3. Show active discounts for item type");
-            System.out.println("4. Show all discounts");
-            System.out.println("5. Show final price for item type");
-            System.out.println("6. Add supplier discount history");
-            System.out.println("7. Show supplier discount history");
-            System.out.println("0. Back");
+            System.out.println("\n==========================================");
+            System.out.println("            DISCOUNT MENU");
+            System.out.println("==========================================");
+            System.out.println("  1. Add item discount");
+            System.out.println("  2. Add category discount");
+            System.out.println("  3. Show active discounts for item type");
+            System.out.println("  4. Show all discounts");
+            System.out.println("  5. Show final price for item type");
+            System.out.println("  6. Add supplier discount history");
+            System.out.println("  7. Show supplier discount history");
+            System.out.println("  0. Back");
+            System.out.println("==========================================");
 
             int choice = readInt("Choose an option: ");
 
@@ -511,106 +660,156 @@ public class CLI {
                     back = true;
                     break;
                 default:
-                    System.out.println("Invalid option.");
+                    System.out.println("  [!] Invalid option. Try again.");
             }
         }
     }
 
     private void addItemDiscount() {
+        System.out.println("\n--- Add Item Discount ---");
         double percentage = readDouble("Enter discount percentage: ");
         LocalDate startDate = readDate("Enter start date (yyyy-mm-dd): ");
         LocalDate endDate = readDate("Enter end date (yyyy-mm-dd): ");
-        List<Integer> itemIds = readIntegerList("Enter item type IDs separated by commas: ");
+
+        List<Integer> itemIds = new ArrayList<>();
+        System.out.println("Select item types (enter 0 when done):");
+
+        while (true) {
+            int id = selectItemType();
+            if (id == -1) {
+                break;
+            }
+            itemIds.add(id);
+            System.out.println("  [+] Added. Select another or 0 to finish.");
+        }
+
+        if (itemIds.isEmpty()) {
+            System.out.println("  [!] No items selected. Cancelled.");
+            return;
+        }
 
         String result = controller.addItemDiscount(percentage, startDate, endDate, itemIds);
-        System.out.println(result);
+        System.out.println(">> " + result);
     }
 
     private void addCategoryDiscount() {
+        System.out.println("\n--- Add Category Discount ---");
         double percentage = readDouble("Enter discount percentage: ");
         LocalDate startDate = readDate("Enter start date (yyyy-mm-dd): ");
         LocalDate endDate = readDate("Enter end date (yyyy-mm-dd): ");
-        List<Integer> categoryIds = readIntegerList("Enter category IDs separated by commas: ");
 
-        String result = controller.addCategoryDiscount(percentage, startDate, endDate, categoryIds);
-        System.out.println(result);
-    }
+        List<Integer> categoryIds = new ArrayList<>();
+        System.out.println("Select categories (enter 0 when done):");
 
-    private void showActiveDiscountsForItem() {
-        int itemTypeId = readInt("Enter item type ID: ");
-        List<Discount> discounts = controller.getActiveDiscountsForItem(itemTypeId);
+        while (true) {
+            int id = selectCategory();
+            if (id == -1) {
+                break;
+            }
+            categoryIds.add(id);
+            System.out.println("  [+] Added. Select another or 0 to finish.");
+        }
 
-        if (discounts.isEmpty()) {
-            System.out.println("No active discounts found.");
+        if (categoryIds.isEmpty()) {
+            System.out.println("  [!] No categories selected. Cancelled.");
             return;
         }
 
-        for (Discount discount : discounts) {
-            System.out.println("Discount ID: " + discount.getId()
-                    + ", Percentage: " + discount.getPercentage()
-                    + ", Start: " + discount.getStartDate()
-                    + ", End: " + discount.getEndDate());
-        }
+        String result = controller.addCategoryDiscount(percentage, startDate, endDate, categoryIds);
+        System.out.println(">> " + result);
     }
 
+  private void showActiveDiscountsForItem() {
+    System.out.println("\n--- Active Discounts for Item Type ---");
+    int itemTypeId = selectItemType();
+    if (itemTypeId == -1) return;
+
+    List<Discount> discounts = controller.getActiveDiscountsForItem(itemTypeId);
+
+    if (discounts.isEmpty()) {
+        System.out.println("  No active discounts found.");
+        return;
+    }
+
+    System.out.printf("\n  %-6s %-12s %-14s %-14s%n", "ID", "Discount%", "Start", "End");
+    System.out.println("  --------------------------------------------------");
+    for (Discount discount : discounts) {
+        System.out.printf("  %-6d %-12.2f %-14s %-14s%n",
+                discount.getId(),
+                discount.getPercentage(),
+                discount.getStartDate(),
+                discount.getEndDate());
+    }
+}
+
     private void showAllDiscounts() {
+        System.out.println("\n--- All Discounts ---");
         List<Discount> discounts = controller.getAllDiscounts();
 
         if (discounts.isEmpty()) {
-            System.out.println("No discounts found.");
+            System.out.println("  No discounts found.");
             return;
         }
 
+        System.out.printf("\n  %-6s %-12s %-14s %-14s%n", "ID", "Discount%", "Start", "End");
+        System.out.println("  --------------------------------------------------");
         for (Discount discount : discounts) {
-            System.out.println("Discount ID: " + discount.getId()
-                    + ", Percentage: " + discount.getPercentage()
-                    + ", Start: " + discount.getStartDate()
-                    + ", End: " + discount.getEndDate());
+            System.out.printf("  %-6d %-12.2f %-14s %-14s%n",
+                    discount.getId(),
+                    discount.getPercentage(),
+                    discount.getStartDate(),
+                    discount.getEndDate());
         }
     }
+private void showFinalPrice() {
+    System.out.println("\n--- Final Price for Item Type ---");
+    int itemTypeId = selectItemType();
+    if (itemTypeId == -1) return;
 
-    private void showFinalPrice() {
-        int itemTypeId = readInt("Enter item type ID: ");
-        double finalPrice = controller.getFinalPrice(itemTypeId);
+    double finalPrice = controller.getFinalPrice(itemTypeId);
 
-        if (finalPrice == -1) {
-            System.out.println("ItemType not found.");
-        } else {
-            System.out.println("Final price: " + finalPrice);
-        }
+    if (finalPrice == -1) {
+        System.out.println("  [!] ItemType not found.");
+    } else {
+        System.out.printf("  Final price: %.2f%n", finalPrice);
     }
+}
 
     private void addSupplierDiscount() {
+        System.out.println("\n--- Add Supplier Discount ---");
         int itemTypeId = readInt("Enter item type ID: ");
         double percentage = readDouble("Enter supplier discount percentage: ");
         LocalDate date = readDate("Enter date (yyyy-mm-dd): ");
         String supplierName = readLine("Enter supplier name: ");
 
         String result = controller.addSupplierDiscount(itemTypeId, percentage, date, supplierName);
-        System.out.println(result);
+        System.out.println(">> " + result);
     }
 
     private void showSupplierDiscountHistory() {
+        System.out.println("\n--- Supplier Discount History ---");
         int itemTypeId = readInt("Enter item type ID: ");
         List<SupplierDiscountHistory> history = controller.getSupplierDiscountHistory(itemTypeId);
 
         if (history.isEmpty()) {
-            System.out.println("No supplier discount history found.");
+            System.out.println("  No supplier discount history found.");
             return;
         }
 
+        System.out.printf("\n  %-6s %-12s %-14s %-15s%n", "ID", "Discount%", "Date", "Supplier");
+        System.out.println("  -----------------------------------------------");
         for (SupplierDiscountHistory record : history) {
-            System.out.println("History ID: " + record.getId()
-                    + ", Percentage: " + record.getDiscountPercentage()
-                    + ", Date: " + record.getDate()
-                    + ", Supplier: " + record.getSupplierName());
+            System.out.printf("  %-6d %-12.2f %-14s %-15s%n",
+                    record.getId(),
+                    record.getDiscountPercentage(),
+                    record.getDate(),
+                    record.getSupplierName());
         }
     }
 
     // =========================================================
     // REPORT MENU
     // =========================================================
-
     private void reportMenu() {
         boolean back = false;
 
@@ -688,7 +887,6 @@ public class CLI {
     // =========================================================
     // ALERT MENU
     // =========================================================
-
     private void alertMenu() {
         boolean back = false;
 
@@ -744,7 +942,6 @@ public class CLI {
     // =========================================================
     // INPUT HELPERS
     // =========================================================
-
     private String readLine(String prompt) {
         System.out.print(prompt);
         return scanner.nextLine().trim();
@@ -781,8 +978,12 @@ public class CLI {
             System.out.print(prompt);
             String input = scanner.nextLine().trim().toLowerCase();
 
-            if (input.equals("true")) return true;
-            if (input.equals("false")) return false;
+            if (input.equals("true")) {
+                return true;
+            }
+            if (input.equals("false")) {
+                return false;
+            }
 
             System.out.println("Invalid boolean. Enter true or false.");
         }

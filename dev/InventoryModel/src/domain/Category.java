@@ -3,8 +3,10 @@ package domain;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class Category {
+
     private int id;
     private String name;
     private Category parent;
@@ -78,13 +80,38 @@ public class Category {
 
     @Override
     public String toString() {
-        return "Category{id=" + id + ", name='" + name + "'}";
+        StringBuilder sb = new StringBuilder();
+        sb.append("ID:      ").append(id).append("\n");
+        sb.append("Name:    ").append(name).append("\n");
+        sb.append("Path:    ").append(getFullPath()).append("\n");
+        sb.append("Is Leaf: ").append(isLeaf()).append("\n");
+
+        if (parent != null) {
+            sb.append("Parent:  ").append(parent.getFullPath()).append("\n"); 
+        }else {
+            sb.append("Parent:  None (root category)\n");
+        }
+
+        if (!children.isEmpty()) {
+            sb.append("Children:\n");
+            for (Category child : children) {
+                sb.append("  - ").append(child.getName()).append("\n");
+            }
+        } else {
+            sb.append("Children: None (leaf)\n");
+        }
+
+        return sb.toString();
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Category)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Category)) {
+            return false;
+        }
         Category category = (Category) o;
         return id == category.id;
     }
@@ -92,5 +119,11 @@ public class Category {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public String getFullPath() {
+        return getCategoryPath().stream()
+                .map(Category::getName)
+                .collect(Collectors.joining(" > "));
     }
 }
