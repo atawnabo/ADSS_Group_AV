@@ -1,0 +1,33 @@
+# ==================== COMPILED OUTPUT ====================
+out/
+bin/
+*.class
+
+# ==================== JAR (except release) ====================
+*.jar
+!release/adss2025_v01.jar
+!lib/*.jar
+
+# ==================== VS CODE ====================
+.vscode/*
+!.vscode/settings.json
+
+# ==================== OS FILES ====================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==================== LOGS ====================
+*.log
+
+# ==================== IDEA / NETBEANS ====================
+.idea/
+*.iml
+nbproject/
+nbactions.xml
+nb-configuration.xml
+
+# ==================== MAVEN / GRADLE ====================
+target/
+build/
+.gradle/
