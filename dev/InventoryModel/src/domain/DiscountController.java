@@ -83,23 +83,7 @@ public class DiscountController {
         return bestDiscount.getFinalPrice(item);
     }
 
-    /**
-     * Records a supplier discount for a specific item.
-     * Stored inside the item itself as historical record.
-     * @param item the ItemType that received the discount
-     * @param percentage the discount percentage received from supplier
-     * @param date the date the discount was given
-     * @param supplierName the name of the supplier
-     * @return "OK" if recorded successfully
-     */
-    public String addSupplierDiscount(ItemType item, double percentage,
-            LocalDate date, String supplierName) {
-        SupplierDiscountHistory history = new SupplierDiscountHistory(
-                discountIdCounter++, percentage, date, supplierName
-        );
-        item.addSupplierDiscount(history);
-        return "OK";
-    }
+
 
     /**
      * Returns all discounts in the system.
@@ -108,13 +92,5 @@ public class DiscountController {
     public List<Discount> getAllDiscounts() {
         return new ArrayList<>(discounts.values());
     }
+    }
 
-    /**
- * Returns the full supplier discount history for a specific product.
- * @param item the ItemType to get history for
- * @return list of SupplierDiscountHistory objects
- */
-public List<SupplierDiscountHistory> getSupplierDiscountHistory(ItemType item) {
-    return item.getDiscountHistory();
-}
-}

@@ -14,69 +14,73 @@ import domain.DefectiveItemReport;
 import domain.Discount;
 import domain.Item;
 import domain.ItemType;
-import domain.Location;
 import domain.PurchasingReport;
-import domain.SupplierDiscountHistory;
 import init.DataLoader;
-
 
 public class CLI {
 
     private final PresentationController controller;
-private final Scanner scanner;
-private final DataLoader dataLoader;
+    private final Scanner scanner;
+    private final DataLoader dataLoader;
 
-public CLI() {
-    this.controller = new PresentationController();
-    this.scanner = new Scanner(System.in);
-    this.dataLoader = new DataLoader(controller);
-}
-
-public static void main(String[] args) {
-    CLI cli = new CLI();
-    cli.start();
-}
-
-public void start() {
-    boolean running = true;
-
-    System.out.println("==================================");
-    System.out.println(" Welcome to Inventory Management ");
-    System.out.println("==================================");
-
-    // ask user to load sample data
-    System.out.println("\n1. Load sample data");
-    System.out.println("2. Start empty");
-    int loadChoice = readInt("Choose: ");
-
-    if (loadChoice == 1) {
-        dataLoader.load();
-        System.out.println("✓ Sample data loaded successfully");
-    } else {
-        System.out.println("✓ Starting with empty system");
+    public CLI() {
+        this.controller = new PresentationController();
+        this.scanner = new Scanner(System.in);
+        this.dataLoader = new DataLoader(controller);
     }
 
-    while (running) {
-        printMainMenu();
-        int choice = readInt("Choose an option: ");
+    public static void main(String[] args) {
+        CLI cli = new CLI();
+        cli.start();
+    }
 
-        switch (choice) {
-            case 1 -> categoryMenu();
-            case 2 -> itemTypeMenu();
-            case 3 -> itemMenu();
-            case 4 -> discountMenu();
-            case 5 -> reportMenu();
-            case 6 -> alertMenu();
-            case 0 -> {
-                running = false;
-                System.out.println("Exiting system...");
-            }
-            default -> System.out.println("Invalid option.");
+    public void start() {
+        boolean running = true;
+
+        System.out.println("==================================");
+        System.out.println(" Welcome to Inventory Management ");
+        System.out.println("==================================");
+
+        // ask user to load sample data
+        System.out.println("\n1. Load sample data");
+        System.out.println("2. Start empty");
+        int loadChoice = readInt("Choose: ");
+
+        if (loadChoice == 1) {
+            dataLoader.load();
+            System.out.println("✓ Sample data loaded successfully");
+        } else {
+            System.out.println("✓ Starting with empty system");
         }
-    }
 
-    scanner.close();
-}
+        while (running) {
+            printMainMenu();
+            int choice = readInt("Choose an option: ");
+
+            switch (choice) {
+                case 1 ->
+                    categoryMenu();
+                case 2 ->
+                    itemTypeMenu();
+                case 3 ->
+                    itemMenu();
+                case 4 ->
+                    discountMenu();
+                case 5 ->
+                    reportMenu();
+                case 6 ->
+                    alertMenu();
+                case 0 -> {
+                    running = false;
+                    System.out.println("Exiting system...");
+                }
+                default ->
+                    System.out.println("Invalid option.");
+            }
+        }
+
+        scanner.close();
+    }
 
     private void printMainMenu() {
         System.out.println("\n========== MAIN MENU ==========");
@@ -307,47 +311,48 @@ public void start() {
         }
     }
 
-    private void addItemType() {
-        System.out.println("\n====== Add Item Type ======");
+private void addItemType() {
+    System.out.println("\n====== Add Item Type ======");
 
-        String name = readLine("Enter item type name: ");
-        int shelfNum = readInt("Enter store shelf number: ");
-        int aisleNum = readInt("Enter store aisle number: ");
-        int minQuantity = readInt("Enter minimum quantity: ");
-        int costPrice = readInt("Enter cost price: ");
-        int sellingPrice = readInt("Enter selling price: ");
-        String manufacturer = readLine("Enter manufacturer: ");
+    String name = readLine("Enter item type name: ");
+    int shelfNum = readInt("Enter store shelf number: ");
+    int aisleNum = readInt("Enter store aisle number: ");
+    int minQuantity = readInt("Enter minimum quantity: ");
+    int costPrice = readInt("Enter cost price: ");
+    int sellingPrice = readInt("Enter selling price: ");
+    String manufacturer = readLine("Enter manufacturer: ");
 
-        // use selectCategory() instead of manual ID entry
-        System.out.println("\nSelect a category for this item:");
-        int categoryId = selectCategory();
-        if (categoryId == -1) {
-            System.out.println("Cancelled. Item type not added.");
-            return;
-        }
-
-        int id = controller.addItemType(
-                name,
-                new Location(shelfNum, aisleNum),
-                minQuantity,
-                costPrice,
-                sellingPrice,
-                categoryId,
-                manufacturer
-        );
-
-        if (id == -1) {
-            System.out.println("Failed to add item type. Category not found.");
-        } else {
-            System.out.println("\nItem type added successfully!");
-            System.out.println("  Name:     " + name);
-            System.out.println("  ID:       " + id);
-            System.out.println("  Category: " + controller.getCategoryById(categoryId).getFullPath());
-            System.out.println("  Min Qty:  " + minQuantity);
-            System.out.println("  Cost:     " + costPrice);
-            System.out.println("  Price:    " + sellingPrice);
-        }
+    System.out.println("\nSelect a category for this item:");
+    int categoryId = selectCategory();
+    if (categoryId == -1) {
+        System.out.println("Cancelled. Item type not added.");
+        return;
     }
+
+    // pass ints, NOT new Location() — controller handles creation
+    int id = controller.addItemType(
+            name,
+            shelfNum,   // ← int
+            aisleNum,   // ← int
+            minQuantity,
+            costPrice,
+            sellingPrice,
+            categoryId,
+            manufacturer
+    );
+
+    if (id == -1) {
+        System.out.println("Failed to add item type.");
+    } else {
+        System.out.println("\nItem type added successfully!");
+        System.out.println("  ID:       " + id);
+        System.out.println("  Name:     " + name);
+        System.out.println("  Category: " + controller.getCategoryById(categoryId).getFullPath());
+        System.out.println("  Min Qty:  " + minQuantity);
+        System.out.println("  Cost:     " + costPrice);
+        System.out.println("  Price:    " + sellingPrice);
+    }
+}
 
     private void showAllItemTypes() {
         List<ItemType> itemTypes = controller.getAllItemTypes();
@@ -378,11 +383,16 @@ public void start() {
         int minQuantity = readInt("Enter new minimum quantity: ");
 
         boolean success = controller.updateMinQuantity(itemTypeId, minQuantity);
-        System.out.println(success ? "Minimum quantity updated." : "ItemType not found.");
+        System.out.println(success ? "Minimum quantity updated." : "ERROR.");
     }
 
     private void showItemTypesByCategory() {
-        int categoryId = readInt("Enter category ID: ");
+        int categoryId = selectCategory();
+        if (categoryId == -1) {
+            System.out.println("Cancelled.");
+            return;
+        }
+
         List<ItemType> itemTypes = controller.getItemTypesByCategory(categoryId);
 
         if (itemTypes.isEmpty()) {
@@ -403,18 +413,20 @@ public void start() {
 
         while (!back) {
             System.out.println("\n------ Item Menu ------");
-            System.out.println("1. Add item");
-            System.out.println("2. Show all items");
-            System.out.println("3. Show item by ID");
-            System.out.println("4. Show items by item type");
-            System.out.println("5. Move one item to shelf");
-            System.out.println("6. Move multiple items to shelf");
-            System.out.println("7. Move one item to warehouse");
-            System.out.println("8. Mark item as damaged");
-            System.out.println("9. Unmark item as damaged");
-            System.out.println("10. Update item expiration date");
-            System.out.println("11. Remove item");
-            System.out.println("0. Back");
+            System.out.println("1.  Add single item");
+            System.out.println("2.  Add multiple items of same type");
+            System.out.println("3.  Show all items");
+            System.out.println("4.  Show item by ID");
+            System.out.println("5.  Show items by item type");
+            System.out.println("6.  Move one item to shelf");
+            System.out.println("7.  Move multiple items to shelf");
+            System.out.println("8.  Move one item to warehouse");
+            System.out.println("9.  Mark item as damaged");
+            System.out.println("10. Unmark item as damaged");
+            System.out.println("11. Update item expiration date");
+            System.out.println("12. Remove item");
+            System.out.println("13. Remove all defective items");
+            System.out.println("0.  Back");
 
             int choice = readInt("Choose an option: ");
 
@@ -423,34 +435,40 @@ public void start() {
                     addItem();
                     break;
                 case 2:
-                    showAllItems();
+                    addItems();
                     break;
                 case 3:
-                    showItemById();
+                    showAllItems();
                     break;
                 case 4:
-                    showItemsByType();
+                    showItemById();
                     break;
                 case 5:
-                    moveItemToShelf();
+                    showItemsByType();
                     break;
                 case 6:
-                    moveItemsToShelf();
+                    moveItemToShelf();
                     break;
                 case 7:
-                    moveItemToWarehouse();
+                    moveItemsToShelf();
                     break;
                 case 8:
-                    markItemAsDamaged();
+                    moveItemToWarehouse();
                     break;
                 case 9:
-                    unmarkItemAsDamaged();
+                    markItemAsDamaged();
                     break;
                 case 10:
-                    updateExpirationDate();
+                    unmarkItemAsDamaged();
                     break;
                 case 11:
+                    updateExpirationDate();
+                    break;
+                case 12:
                     removeItem();
+                    break;
+                case 13:
+                    removeAllDefectiveItems();
                     break;
                 case 0:
                     back = true;
@@ -460,6 +478,28 @@ public void start() {
             }
         }
     }
+
+ private void removeAllDefectiveItems() {
+    System.out.println("\nCurrent defective items:");
+    DefectiveItemReport report = controller.createDefectiveItemReport();
+    System.out.println(report);
+
+    boolean confirm = readBoolean("Are you sure? (true/false): ");
+    if (!confirm) {
+        System.out.println("Cancelled.");
+        return;
+    }
+
+    List<Alert> alerts = controller.removeAllDefectiveItems();
+    System.out.println("Defective items removed.");
+
+    // print all alerts ONCE after everything is done
+    if (!alerts.isEmpty()) {
+        System.out.println("\n⚠ LOW STOCK ALERTS:");
+        for (Alert alert : alerts)
+            System.out.println(alert);
+    }
+}
 
     private void addItem() {
         System.out.println("\n====== ADD ITEM ======");
@@ -493,6 +533,28 @@ public void start() {
             System.out.println("==============================");
         } else {
             System.out.println("\n====== ITEM ADDED ======");
+        }
+    }
+
+    private void addItems() {
+        System.out.println("\n====== ADD MULTIPLE ITEMS ======");
+
+        int itemTypeId = selectItemType();
+        if (itemTypeId == -1) {
+            System.out.println("Cancelled.");
+            return;
+        }
+
+        int amount = readInt("Enter amount to add: ");
+        LocalDate expirationDate = readOptionalDate("Enter expiration date (yyyy-mm-dd) or leave empty: ");
+        boolean inWarehouse = readBoolean("Store in warehouse? (true/false): ");
+
+        int result = controller.addItems(itemTypeId, amount, expirationDate, inWarehouse);
+
+        if (result == -1) {
+            System.out.println("ERROR: item type not found");
+        } else {
+            System.out.println("✓ " + result + " items added successfully");
         }
     }
 
@@ -573,98 +635,101 @@ public void start() {
     }
 
     private void removeItem() {
-        int itemId = readInt("Enter item ID: ");
-        boolean success = controller.removeItem(itemId);
-        System.out.println(success ? "Item removed." : "Item not found.");
-    }
-public int selectItemType() {
-    List<ItemType> itemTypes = controller.getAllItemTypes();
-    if (itemTypes.isEmpty()) {
-        System.out.println("No item types exist.");
-        return -1;
+    int itemId = readInt("Enter item ID: ");
+    Alert alert = controller.removeItem(itemId);
+
+    if (alert == null && controller.getItemById(itemId) != null) {
+        System.out.println("ERROR: could not remove item.");
+        return;
     }
 
-    System.out.println("\n====== AVAILABLE ITEM TYPES ======");
-    for (ItemType type : itemTypes) {
-        System.out.println(type.getId() + ". " + type.getName()
-                + " | Category: " + type.getCategory().getFullPath()
-                + " | Price: " + type.getSellingPrice());
+    System.out.println("Item removed.");
+
+    if (alert != null) {
+        System.out.println("\n⚠ LOW STOCK ALERT:");
+        System.out.println(alert);
     }
-    System.out.println("----------------------------------");
-    System.out.println("  -1. Done selecting");
-    System.out.println("==================================");
-    System.out.print("Choose item type (-1 to finish): ");
-
-    int id = scanner.nextInt();
-    scanner.nextLine();
-
-    if (id == -1) {
-        return -1;
-    }
-
-    ItemType selected = controller.getItemTypeById(id);
-    if (selected == null) {
-        System.out.println("ERROR: item type not found");
-        return -1;
-    }
-
-    System.out.println("Selected: " + selected.getName());
-    return id;
 }
+
+    public int selectItemType() {
+        List<ItemType> itemTypes = controller.getAllItemTypes();
+        if (itemTypes.isEmpty()) {
+            System.out.println("No item types exist.");
+            return -1;
+        }
+
+        System.out.println("\n====== AVAILABLE ITEM TYPES ======");
+        for (ItemType type : itemTypes) {
+            System.out.println(type.getId() + ". " + type.getName()
+                    + " | Category: " + type.getCategory().getFullPath()
+                    + " | Price: " + type.getSellingPrice());
+        }
+        System.out.println("----------------------------------");
+        System.out.println("  -1. Done selecting");
+        System.out.println("==================================");
+        System.out.print("Choose item type (-1 to finish): ");
+
+        int id = scanner.nextInt();
+        scanner.nextLine();
+
+        if (id == -1) {
+            return -1;
+        }
+
+        ItemType selected = controller.getItemTypeById(id);
+        if (selected == null) {
+            System.out.println("ERROR: item type not found");
+            return -1;
+        }
+
+        System.out.println("Selected: " + selected.getName());
+        return id;
+    }
 
     // =========================================================
 // DISCOUNT MENU
 // =========================================================
-    private void discountMenu() {
-        boolean back = false;
+   private void discountMenu() {
+    boolean back = false;
 
-        while (!back) {
-            System.out.println("\n==========================================");
-            System.out.println("            DISCOUNT MENU");
-            System.out.println("==========================================");
-            System.out.println("  1. Add item discount");
-            System.out.println("  2. Add category discount");
-            System.out.println("  3. Show active discounts for item type");
-            System.out.println("  4. Show all discounts");
-            System.out.println("  5. Show final price for item type");
-            System.out.println("  6. Add supplier discount history");
-            System.out.println("  7. Show supplier discount history");
-            System.out.println("  0. Back");
-            System.out.println("==========================================");
+    while (!back) {
+        System.out.println("\n==========================================");
+        System.out.println("            DISCOUNT MENU");
+        System.out.println("==========================================");
+        System.out.println("  1. Add item discount");
+        System.out.println("  2. Add category discount");
+        System.out.println("  3. Show active discounts for item type");
+        System.out.println("  4. Show all discounts");
+        System.out.println("  5. Show final price for item type");
+        System.out.println("  0. Back");
+        System.out.println("==========================================");
 
-            int choice = readInt("Choose an option: ");
+        int choice = readInt("Choose an option: ");
 
-            switch (choice) {
-                case 1:
-                    addItemDiscount();
-                    break;
-                case 2:
-                    addCategoryDiscount();
-                    break;
-                case 3:
-                    showActiveDiscountsForItem();
-                    break;
-                case 4:
-                    showAllDiscounts();
-                    break;
-                case 5:
-                    showFinalPrice();
-                    break;
-                case 6:
-                    addSupplierDiscount();
-                    break;
-                case 7:
-                    showSupplierDiscountHistory();
-                    break;
-                case 0:
-                    back = true;
-                    break;
-                default:
-                    System.out.println("  [!] Invalid option. Try again.");
-            }
+        switch (choice) {
+            case 1:
+                addItemDiscount();
+                break;
+            case 2:
+                addCategoryDiscount();
+                break;
+            case 3:
+                showActiveDiscountsForItem();
+                break;
+            case 4:
+                showAllDiscounts();
+                break;
+            case 5:
+                showFinalPrice();
+                break;
+            case 0:
+                back = true;
+                break;
+            default:
+                System.out.println("  [!] Invalid option. Try again.");
         }
     }
-
+}
     private void addItemDiscount() {
         System.out.println("\n--- Add Item Discount ---");
         double percentage = readDouble("Enter discount percentage: ");
@@ -719,28 +784,30 @@ public int selectItemType() {
         System.out.println(">> " + result);
     }
 
-  private void showActiveDiscountsForItem() {
-    System.out.println("\n--- Active Discounts for Item Type ---");
-    int itemTypeId = selectItemType();
-    if (itemTypeId == -1) return;
+    private void showActiveDiscountsForItem() {
+        System.out.println("\n--- Active Discounts for Item Type ---");
+        int itemTypeId = selectItemType();
+        if (itemTypeId == -1) {
+            return;
+        }
 
-    List<Discount> discounts = controller.getActiveDiscountsForItem(itemTypeId);
+        List<Discount> discounts = controller.getActiveDiscountsForItem(itemTypeId);
 
-    if (discounts.isEmpty()) {
-        System.out.println("  No active discounts found.");
-        return;
+        if (discounts.isEmpty()) {
+            System.out.println("  No active discounts found.");
+            return;
+        }
+
+        System.out.printf("\n  %-6s %-12s %-14s %-14s%n", "ID", "Discount%", "Start", "End");
+        System.out.println("  --------------------------------------------------");
+        for (Discount discount : discounts) {
+            System.out.printf("  %-6d %-12.2f %-14s %-14s%n",
+                    discount.getId(),
+                    discount.getPercentage(),
+                    discount.getStartDate(),
+                    discount.getEndDate());
+        }
     }
-
-    System.out.printf("\n  %-6s %-12s %-14s %-14s%n", "ID", "Discount%", "Start", "End");
-    System.out.println("  --------------------------------------------------");
-    for (Discount discount : discounts) {
-        System.out.printf("  %-6d %-12.2f %-14s %-14s%n",
-                discount.getId(),
-                discount.getPercentage(),
-                discount.getStartDate(),
-                discount.getEndDate());
-    }
-}
 
     private void showAllDiscounts() {
         System.out.println("\n--- All Discounts ---");
@@ -761,52 +828,22 @@ public int selectItemType() {
                     discount.getEndDate());
         }
     }
-private void showFinalPrice() {
-    System.out.println("\n--- Final Price for Item Type ---");
-    int itemTypeId = selectItemType();
-    if (itemTypeId == -1) return;
 
-    double finalPrice = controller.getFinalPrice(itemTypeId);
-
-    if (finalPrice == -1) {
-        System.out.println("  [!] ItemType not found.");
-    } else {
-        System.out.printf("  Final price: %.2f%n", finalPrice);
-    }
-}
-
-    private void addSupplierDiscount() {
-        System.out.println("\n--- Add Supplier Discount ---");
-        int itemTypeId = readInt("Enter item type ID: ");
-        double percentage = readDouble("Enter supplier discount percentage: ");
-        LocalDate date = readDate("Enter date (yyyy-mm-dd): ");
-        String supplierName = readLine("Enter supplier name: ");
-
-        String result = controller.addSupplierDiscount(itemTypeId, percentage, date, supplierName);
-        System.out.println(">> " + result);
-    }
-
-    private void showSupplierDiscountHistory() {
-        System.out.println("\n--- Supplier Discount History ---");
-        int itemTypeId = readInt("Enter item type ID: ");
-        List<SupplierDiscountHistory> history = controller.getSupplierDiscountHistory(itemTypeId);
-
-        if (history.isEmpty()) {
-            System.out.println("  No supplier discount history found.");
+    private void showFinalPrice() {
+        System.out.println("\n--- Final Price for Item Type ---");
+        int itemTypeId = selectItemType();
+        if (itemTypeId == -1) {
             return;
         }
 
-        System.out.printf("\n  %-6s %-12s %-14s %-15s%n", "ID", "Discount%", "Date", "Supplier");
-        System.out.println("  -----------------------------------------------");
-        for (SupplierDiscountHistory record : history) {
-            System.out.printf("  %-6d %-12.2f %-14s %-15s%n",
-                    record.getId(),
-                    record.getDiscountPercentage(),
-                    record.getDate(),
-                    record.getSupplierName());
+        double finalPrice = controller.getFinalPrice(itemTypeId);
+
+        if (finalPrice == -1) {
+            System.out.println("  [!] ItemType not found.");
+        } else {
+            System.out.printf("  Final price: %.2f%n", finalPrice);
         }
     }
-
     // =========================================================
     // REPORT MENU
     // =========================================================
@@ -852,27 +889,41 @@ private void showFinalPrice() {
     }
 
     private void showInventoryByCategories() {
-        List<Integer> categoryIds = readIntegerList("Enter category IDs separated by commas: ");
-        Map<Category, List<ItemType>> inventoryMap = controller.getInventoryByCategories(categoryIds);
+    List<Integer> categoryIds = new ArrayList<>();
 
-        if (inventoryMap.isEmpty()) {
-            System.out.println("No inventory found.");
-            return;
-        }
+    System.out.println("Select categories (0 to finish):");
+    while (true) {
+        int id = selectCategory();
+        if (id == -1) break;
+        categoryIds.add(id);
+        System.out.println("  [+] Added. Select another or 0 to finish.");
+    }
 
-        for (Map.Entry<Category, List<ItemType>> entry : inventoryMap.entrySet()) {
-            System.out.println("\nCategory: " + entry.getKey());
-            List<ItemType> itemTypes = entry.getValue();
+    if (categoryIds.isEmpty()) {
+        System.out.println("No categories selected.");
+        return;
+    }
 
-            if (itemTypes.isEmpty()) {
-                System.out.println("  No item types in this category.");
-            } else {
-                for (ItemType itemType : itemTypes) {
-                    System.out.println("  - " + itemType);
-                }
+    Map<Category, List<ItemType>> inventoryMap = controller.getInventoryByCategories(categoryIds);
+
+    if (inventoryMap.isEmpty()) {
+        System.out.println("No inventory found.");
+        return;
+    }
+
+    for (Map.Entry<Category, List<ItemType>> entry : inventoryMap.entrySet()) {
+        System.out.println("\nCategory: " + entry.getKey().getFullPath());
+        List<ItemType> itemTypes = entry.getValue();
+
+        if (itemTypes.isEmpty()) {
+            System.out.println("  No item types in this category.");
+        } else {
+            for (ItemType itemType : itemTypes) {
+                System.out.println("  - " + itemType);
             }
         }
     }
+}
 
     private void createDefectiveItemReport() {
         DefectiveItemReport report = controller.createDefectiveItemReport();

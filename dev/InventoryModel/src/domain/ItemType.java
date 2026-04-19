@@ -1,10 +1,9 @@
 package domain;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 public class ItemType {
+
     private int id;
     private String name;
     private Location storeLocation;
@@ -15,12 +14,11 @@ public class ItemType {
     private int sellingPrice;
     private Category category;
     private String manufacturer;
-    private List<SupplierDiscountHistory> discountHistory;
 
     public ItemType(int id, String name, Location storeLocation,
-                    int shelfQuantity, int warehouseQuantity, int minQuantity,
-                    int costPrice, int sellingPrice,
-                    Category category, String manufacturer) {
+            int shelfQuantity, int warehouseQuantity, int minQuantity,
+            int costPrice, int sellingPrice,
+            Category category, String manufacturer) {
 
         if (id < 0) {
             throw new IllegalArgumentException("ID must be non-negative");
@@ -54,7 +52,7 @@ public class ItemType {
         this.sellingPrice = sellingPrice;
         this.category = category;
         this.manufacturer = manufacturer;
-        this.discountHistory = new ArrayList<>();
+
     }
 
     public int getId() {
@@ -191,33 +189,30 @@ public class ItemType {
         warehouseQuantity -= amount;
     }
 
-    public void addSupplierDiscount(SupplierDiscountHistory history) {
-        if (history == null) {
-            throw new IllegalArgumentException("History cannot be null");
-        }
-        discountHistory.add(history);
-    }
-
-    public List<SupplierDiscountHistory> getDiscountHistory() {
-        return new ArrayList<>(discountHistory);
-    }
-
     @Override
     public String toString() {
-        return "ItemType{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", shelfQuantity=" + shelfQuantity +
-                ", warehouseQuantity=" + warehouseQuantity +
-                ", minQuantity=" + minQuantity +
-                ", manufacturer='" + manufacturer + '\'' +
-                '}';
+        return "ID: " + id
+                + " | Name: " + name
+                + " | Manufacturer: " + manufacturer
+                + " | Category: " + (category != null ? category.getFullPath() : "None")
+                + " | Location: " + storeLocation
+                + " | Cost: " + costPrice
+                + " | Price: " + sellingPrice
+                + " | Shelf: " + shelfQuantity
+                + " | Warehouse: " + warehouseQuantity
+                + " | Total: " + getTotalQuantity()
+                + " | Min: " + minQuantity
+                + " | Restock: " + (needsRestock() ? "⚠ YES" : "OK");
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ItemType)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ItemType)) {
+            return false;
+        }
         ItemType itemType = (ItemType) o;
         return id == itemType.id;
     }

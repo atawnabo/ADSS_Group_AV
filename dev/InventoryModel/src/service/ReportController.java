@@ -1,14 +1,14 @@
 package service;
 
+import java.util.List;
+import java.util.Map;
+
 import domain.Category;
 import domain.CategoryInventoryReport;
 import domain.DefectiveItemReport;
 import domain.InventoryController;
 import domain.ItemType;
 import domain.PurchasingReport;
-
-import java.util.List;
-import java.util.Map;
 
 public class ReportController {
     private final InventoryController inventoryController;

@@ -1,11 +1,10 @@
 package service;
 
-import domain.Discount;
-import domain.InventoryController;
-import domain.SupplierDiscountHistory;
-
 import java.time.LocalDate;
 import java.util.List;
+
+import domain.Discount;
+import domain.InventoryController;
 
 public class DiscountController {
     private final InventoryController inventoryController;
@@ -53,19 +52,5 @@ public class DiscountController {
         return inventoryController.getFinalPrice(itemTypeId);
     }
 
-    public String addSupplierDiscount(int itemTypeId,
-                                      double percentage,
-                                      LocalDate date,
-                                      String supplierName) {
-        return inventoryController.addSupplierDiscount(
-                itemTypeId,
-                percentage,
-                date,
-                supplierName
-        );
-    }
 
-    public List<SupplierDiscountHistory> getSupplierDiscountHistory(int itemTypeId) {
-        return inventoryController.getSupplierDiscountHistory(itemTypeId);
-    }
 }

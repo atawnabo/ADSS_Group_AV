@@ -1,7 +1,8 @@
 package service;
 
-import domain.Category;
 import java.util.List;
+
+import domain.Category;
 
 public class CategoryController {
     private final domain.InventoryController inventoryController;

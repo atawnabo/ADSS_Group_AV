@@ -1,8 +1,10 @@
 package domain;
+
 import java.time.LocalDate;
 import java.util.Objects;
 
 public class Item {
+
     private final ItemType itemType;
     private final int itemID;
     private int sellDiscount;
@@ -14,9 +16,9 @@ public class Item {
     private boolean inWarehouse;
 
     public Item(ItemType itemType, int id,
-                int sellDiscount, int buyDiscount,
-                LocalDate expirationDate,
-                boolean damaged, boolean inWarehouse) {
+            int sellDiscount, int buyDiscount,
+            LocalDate expirationDate,
+            boolean damaged, boolean inWarehouse) {
 
         this.itemType = itemType;
         this.itemID = id;
@@ -88,8 +90,8 @@ public class Item {
     }
 
     public boolean isExpired() {
-        return expirationDate != null &&
-               expirationDate.isBefore(LocalDate.now());
+        return expirationDate != null
+                && expirationDate.isBefore(LocalDate.now());
     }
 
     public void updatePrices() {
@@ -106,18 +108,25 @@ public class Item {
 
     @Override
     public String toString() {
-        return "Item{" +
-                "id=" + itemID +
-                ", itemType=" + itemType.getName() +
-                ", damaged=" + damaged +
-                ", expired=" + isExpired() +
-                '}';
+        return "ID: " + itemID
+                + " | Type: " + itemType.getName()
+                + " | Location: " + (inWarehouse ? "Warehouse" : "Shelf")
+                + " | Cost: " + itemPrice
+                + " | Sell: " + itemSellPrice
+                + " | Expires: " + (expirationDate != null ? expirationDate : "N/A")
+                + " | Damaged: " + (damaged ? "YES" : "No")
+                + " | Expired: " + (isExpired() ? "YES" : "No")
+                + " | Available: " + (isAvailableForSale() ? "Yes" : "NO");
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Item)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Item)) {
+            return false;
+        }
         Item item = (Item) o;
         return itemID == item.itemID;
     }

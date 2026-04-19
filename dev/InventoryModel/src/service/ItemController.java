@@ -1,14 +1,15 @@
 package service;
 
-import domain.Item;
-import domain.ItemType;
-import domain.InventoryController;
-import domain.Location;
-
 import java.time.LocalDate;
 import java.util.List;
 
+import domain.Alert;
+import domain.InventoryController;
+import domain.Item;
+import domain.ItemType;
+
 public class ItemController {
+
     private final InventoryController inventoryController;
 
     public ItemController(InventoryController inventoryController) {
@@ -18,23 +19,23 @@ public class ItemController {
         this.inventoryController = inventoryController;
     }
 
-    public int addItemType(String name,
-                           Location storeLocation,
-                           int minQuantity,
-                           int costPrice,
-                           int sellingPrice,
-                           int categoryId,
-                           String manufacturer) {
-        return inventoryController.addItemType(
-                name,
-                storeLocation,
-                minQuantity,
-                costPrice,
-                sellingPrice,
-                categoryId,
-                manufacturer
-        );
-    }
+  public int addItemType(String name,
+                       int shelfNum,
+                       int aisleNum,
+                       int minQuantity,
+                       int costPrice,
+                       int sellingPrice,
+                       int categoryId,
+                       String manufacturer) {
+    if (name == null || name.trim().isEmpty()) return -1;
+    if (costPrice < 0 || sellingPrice < 0)     return -1;
+    if (minQuantity < 0)                        return -1;
+
+    return inventoryController.addItemType(
+            name, shelfNum, aisleNum, minQuantity,
+            costPrice, sellingPrice, categoryId, manufacturer
+    );
+}
 
     public ItemType getItemTypeById(int itemTypeId) {
         return inventoryController.getItemTypeById(itemTypeId);
@@ -49,11 +50,11 @@ public class ItemController {
     }
 
     public int addItem(int itemTypeId,
-                       int sellDiscount,
-                       int buyDiscount,
-                       LocalDate expirationDate,
-                       boolean damaged,
-                       boolean inWarehouse) {
+            int sellDiscount,
+            int buyDiscount,
+            LocalDate expirationDate,
+            boolean damaged,
+            boolean inWarehouse) {
         return inventoryController.addItem(
                 itemTypeId,
                 sellDiscount,
@@ -100,11 +101,28 @@ public class ItemController {
         return inventoryController.updateItemExpirationDate(itemId, newDate);
     }
 
-    public boolean removeItem(int itemId) {
+    public Alert removeItem(int itemId) {
         return inventoryController.removeItem(itemId);
     }
 
     public List<ItemType> getItemTypesByCategory(int categoryId) {
         return inventoryController.getItemTypesByCategory(categoryId);
     }
+
+    public int addItems(int itemTypeId, int amount,
+            LocalDate expirationDate, boolean inWarehouse) {
+        if (amount <= 0) {
+            return -1;
+        }
+        if (itemTypeId <= 0) {
+            return -1;
+        }
+        return inventoryController.addItems(
+                itemTypeId, amount, expirationDate, inWarehouse
+        );
+    }
+
+    public List<Alert> removeAllDefectiveItems() {
+    return inventoryController.removeAllDefectiveItems();
+}
 }

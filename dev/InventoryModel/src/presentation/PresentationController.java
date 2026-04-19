@@ -1,5 +1,9 @@
 package presentation;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+
 import domain.Alert;
 import domain.Category;
 import domain.CategoryInventoryReport;
@@ -7,12 +11,7 @@ import domain.DefectiveItemReport;
 import domain.Discount;
 import domain.Item;
 import domain.ItemType;
-import domain.Location;
 import domain.PurchasingReport;
-import domain.SupplierDiscountHistory;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
 import service.ServiceController;
 
 public class PresentationController {
@@ -46,17 +45,19 @@ public class PresentationController {
 
     // ==================== ITEM TYPE / ITEMS ====================
 
-    public int addItemType(String name,
-                           Location storeLocation,
-                           int minQuantity,
-                           int costPrice,
-                           int sellingPrice,
-                           int categoryId,
-                           String manufacturer) {
-        return serviceController.getItemController().addItemType(
-                name, storeLocation, minQuantity, costPrice, sellingPrice, categoryId, manufacturer
-        );
-    }
+  public int addItemType(String name,
+                       int shelfNum,    // ← int
+                       int aisleNum,    // ← int
+                       int minQuantity,
+                       int costPrice,
+                       int sellingPrice,
+                       int categoryId,
+                       String manufacturer) {
+    return serviceController.getItemController().addItemType(
+            name, shelfNum, aisleNum, minQuantity,
+            costPrice, sellingPrice, categoryId, manufacturer
+    );
+}
 
     public ItemType getItemTypeById(int itemTypeId) {
         return serviceController.getItemController().getItemTypeById(itemTypeId);
@@ -117,9 +118,9 @@ public class PresentationController {
         return serviceController.getItemController().updateItemExpirationDate(itemId, newDate);
     }
 
-    public boolean removeItem(int itemId) {
-        return serviceController.getItemController().removeItem(itemId);
-    }
+    public Alert removeItem(int itemId) {
+    return serviceController.getItemController().removeItem(itemId);
+}
 
     public List<ItemType> getItemTypesByCategory(int categoryId) {
         return serviceController.getItemController().getItemTypesByCategory(categoryId);
@@ -157,18 +158,6 @@ public class PresentationController {
         return serviceController.getDiscountController().getFinalPrice(itemTypeId);
     }
 
-    public String addSupplierDiscount(int itemTypeId,
-                                      double percentage,
-                                      LocalDate date,
-                                      String supplierName) {
-        return serviceController.getDiscountController().addSupplierDiscount(
-                itemTypeId, percentage, date, supplierName
-        );
-    }
-
-    public List<SupplierDiscountHistory> getSupplierDiscountHistory(int itemTypeId) {
-        return serviceController.getDiscountController().getSupplierDiscountHistory(itemTypeId);
-    }
 
     // ==================== REPORTS ====================
 
@@ -197,4 +186,14 @@ public class PresentationController {
     public Alert getAlertForItemType(int itemTypeId) {
         return serviceController.getAlertController().getAlertForItemType(itemTypeId);
     }
+
+    public int addItems(int itemTypeId, int amount,
+                    LocalDate expirationDate, boolean inWarehouse) {
+    return serviceController.getItemController()
+           .addItems(itemTypeId, amount, expirationDate, inWarehouse);
+}
+
+public List<Alert> removeAllDefectiveItems() {
+    return serviceController.getItemController().removeAllDefectiveItems();
+}
 }
