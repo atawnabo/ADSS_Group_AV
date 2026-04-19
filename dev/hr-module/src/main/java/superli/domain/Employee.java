@@ -10,7 +10,6 @@ public class Employee extends User {
     private EmployeeTerms employeeTerms;
     private List<Role> roles;
     private List<ShiftAssignment> shiftScheduled;
-    //private List<ShiftAssignment> shiftHistory;
     private List<Availability> availability;
     private boolean active = true;
 
@@ -29,7 +28,6 @@ public class Employee extends User {
 }
             
         this.shiftScheduled = new ArrayList<>();
-        //this.shiftHistory = new ArrayList<>();
         this.availability = new ArrayList<>();
     }
 
@@ -45,8 +43,6 @@ public class Employee extends User {
     public List<Role> getRoles() { return roles; }
 
     public List<ShiftAssignment> getShiftScheduled() { return shiftScheduled; }
-
-   // public List<ShiftAssignment> getShiftHistory() { return shiftHistory; }
 
     public List<Availability> getAvailability() { return availability; }
 
