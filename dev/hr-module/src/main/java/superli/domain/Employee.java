@@ -12,21 +12,22 @@ public class Employee extends User {
     private List<ShiftAssignment> shiftScheduled;
     private List<Availability> availability;
     private boolean active = true;
+    private StoreBranch branch;
 
-    public Employee(int id, String name, BankAccount bankDetails,EmployeeTerms employeeTerms, List<Role> roles) 
-     {
-
+    public Employee(int id, String name, BankAccount bankDetails,EmployeeTerms employeeTerms, List<Role> roles ,StoreBranch branch){
         this.id = id;
         this.name = name;
         this.bankDetails = bankDetails;
         this.employeeTerms = employeeTerms;
-     if (roles != null) {
-    this.roles = new ArrayList<>(roles);
-}
- else {
-    this.roles = new ArrayList<>();
-}
-            
+
+        if (roles != null) {
+          this.roles = new ArrayList<>(roles);
+        }
+        else{
+            this.roles = new ArrayList<>();
+        }
+
+        this.branch = branch;
         this.shiftScheduled = new ArrayList<>();
         this.availability = new ArrayList<>();
     }
@@ -45,6 +46,10 @@ public class Employee extends User {
     public List<ShiftAssignment> getShiftScheduled() { return shiftScheduled; }
 
     public List<Availability> getAvailability() { return availability; }
+
+    public StoreBranch getBranch(){ return branch;}
+
+    public void setBranch(StoreBranch branch) {this.branch = branch ;}
 
     public boolean isActive() { return active; }
 

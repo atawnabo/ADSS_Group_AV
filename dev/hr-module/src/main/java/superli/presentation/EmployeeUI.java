@@ -1,5 +1,6 @@
 package superli.presentation;
 
+import superli.domain.Employee;
 import superli.domain.Role;
 import superli.domain.ShiftAssignment;
 import superli.service.EmployeeService;
@@ -166,6 +167,7 @@ public class EmployeeUI {
 
     private void viewMyShifts() {
         List<ShiftAssignment> shifts = service.viewScheduledShifts(loggedInId);
+        Employee employee = service.getEmployee(loggedInId);
 
         if (shifts.isEmpty()) {
             System.out.println("No shifts");
@@ -173,7 +175,11 @@ public class EmployeeUI {
             for (ShiftAssignment s : shifts) {
               System.out.println("Date: " + s.getDate() +
                    " | Shift: " + s.getShiftType() +
-                   " | Role: " + s.getRole());
+                   " | Role: " + s.getRole());   
+              System.out.println("Branch: " + employee.getBranch().getName()
+              + " | ID: " + employee.getBranch().getBranchId() + " | Address: " + employee.getBranch().getAddress());
+              
+              System.out.println("");
             }
         }
     }

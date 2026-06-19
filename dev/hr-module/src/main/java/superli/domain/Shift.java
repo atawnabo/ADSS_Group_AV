@@ -11,12 +11,14 @@ public class Shift {
     private ShiftType shiftType ;
     private List<ShiftAssignment> assignments ;
     private Map<Role,Integer> requiredRoles ;
+    private StoreBranch branch;
 
-    public Shift(LocalDate date , ShiftType shiftType){
+    public Shift(LocalDate date , ShiftType shiftType, StoreBranch branch){
         this.date = date ;
         this.shiftType = shiftType ;
         this.assignments = new ArrayList<>();
         this.requiredRoles = new HashMap<>();
+        this.branch = branch;
     }
 
     public LocalDate getDate(){
@@ -30,6 +32,9 @@ public class Shift {
     }
     public Map<Role,Integer> getRequiredRoles(){
         return requiredRoles ;
+    }
+    public StoreBranch getBranch(){
+        return branch;
     }
 
     public void addAssignment(ShiftAssignment assignment){

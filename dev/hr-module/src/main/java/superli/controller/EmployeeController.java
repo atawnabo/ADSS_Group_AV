@@ -16,24 +16,24 @@ public class EmployeeController {
         employees = new HashMap<>();
     }
 
-    public Employee addEmployee(int id,String name,String bankName, int accountNumber,List<Role> rolesList,EmployeeTerms employeeTerms) {
+    public Employee addEmployee(int id,String name,String bankName, int accountNumber,List<Role> rolesList,EmployeeTerms employeeTerms, StoreBranch branch) {
         if (employees.containsKey(id)) {
             System.out.println("Employee already exists");
             return null;
         }
 
         BankAccount bankDetails = new BankAccount(bankName, accountNumber, name);
-        Employee employee = new Employee(id, name, bankDetails, employeeTerms, rolesList);
+        Employee employee = new Employee(id, name, bankDetails, employeeTerms, rolesList, branch);
         employees.put(id, employee);
         return employee;
     }
 
 
-    public Employee addEmployee(int id, String name,String bankName,int accountNumber,List<Role> rolesList,Date startDate,String employmentType,double globalSalary,double hourlySalary,int vacationDays) {
+    public Employee addEmployee(int id, String name,String bankName,int accountNumber,List<Role> rolesList,Date startDate,String employmentType,double globalSalary,double hourlySalary,int vacationDays,StoreBranch branch) {
 
         EmployeeTerms employeeTerms = new EmployeeTerms(startDate,employmentType,globalSalary,hourlySalary,vacationDays);
 
-          return addEmployee(id, name, bankName, accountNumber, rolesList, employeeTerms);
+          return addEmployee(id, name, bankName, accountNumber, rolesList, employeeTerms, branch);
     }
 
     public Employee getEmployee(int id) {
@@ -130,13 +130,13 @@ public class EmployeeController {
         return employeesByRole;
     }
 
-    public List<Integer> getAvailableEmployees(Role selectedRole,int dayOfWeek,boolean isMorning,boolean isEvening) {
+    public List<Integer> getAvailableEmployees(Role selectedRole,int dayOfWeek,boolean isMorning,boolean isEvening, StoreBranch branch) {
         List<Integer> availableEmployees = new ArrayList<>();
         for (Map.Entry<Integer, Employee> entry : employees.entrySet()) {
             Integer employeeId = entry.getKey();
             Employee employee = entry.getValue();
 
-            if (employee.isActive() && employee.hasRole(selectedRole)&& employee.canWork(dayOfWeek, isMorning, isEvening)) 
+            if (employee.isActive() && employee.hasRole(selectedRole)&& employee.canWork(dayOfWeek, isMorning, isEvening) && employee.getBranch().equals(branch)) 
                 {
                 availableEmployees.add(employeeId);
             }
@@ -145,8 +145,18 @@ public class EmployeeController {
         return availableEmployees;
     }
 
-    public boolean hasAvailableShiftManager(int day, boolean isMorning, boolean isEvening) {
-        return !getAvailableEmployees(Role.SHIFT_MANAGER, day, isMorning, isEvening).isEmpty();
+    public boolean hasAvailableShiftManager(int day, boolean isMorning, boolean isEvening, StoreBranch branch) {
+        return !getAvailableEmployees(Role.SHIFT_MANAGER, day, isMorning, isEvening, branch).isEmpty();
+    }
+
+    public boolean hasAssignedStockKeeper(Shift shift) {
+        for (ShiftAssignment assignment : shift.getAssignments()) {
+            Employee employee = assignment.getEmployee();
+            if (employee.isActive() && employee.hasRole(Role.STOCK_KEEPER) && employee.getBranch().getBranchId() == shift.getBranch().getBranchId()) {
+               return true;
+            }
+        }
+        return false;
     }
 
     public List<Role> getEmployeeRoles(int employeeId) {

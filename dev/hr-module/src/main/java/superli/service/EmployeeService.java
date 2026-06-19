@@ -16,16 +16,16 @@ public class EmployeeService {
 
    
     public Employee addEmployee(int id, String name, String bankName, int accountNumber,
-                                List<Role> rolesList, EmployeeTerms employeeTerms) {
-        return controller.addEmployee(id, name, bankName, accountNumber, rolesList, employeeTerms);
+                                List<Role> rolesList, EmployeeTerms employeeTerms, StoreBranch branch) {
+        return controller.addEmployee(id, name, bankName, accountNumber, rolesList, employeeTerms, branch);
     }
 
     public Employee addEmployee(int id, String name, String bankName, int accountNumber,
                                 List<Role> rolesList, Date startDate, String employmentType,
-                                double globalSalary, double hourlySalary, int vacationDays) {
+                                double globalSalary, double hourlySalary, int vacationDays, StoreBranch branch) {
 
         return controller.addEmployee(id, name, bankName, accountNumber, rolesList,
-                startDate, employmentType, globalSalary, hourlySalary, vacationDays);
+                startDate, employmentType, globalSalary, hourlySalary, vacationDays, branch);
     }
 
     public Employee getEmployee(int id) {
@@ -69,15 +69,20 @@ public class EmployeeService {
     }
 
 
-public List<Integer> getAvailableEmployees(Role role, int day, boolean morning, boolean evening) {
-    return controller.getAvailableEmployees(role, day, morning, evening);
-}
+    public List<Integer> getAvailableEmployees(Role role, int day, boolean morning, boolean evening, StoreBranch branch) {
+       return controller.getAvailableEmployees(role, day, morning, evening, branch);
+    }
+
     public List<Integer> getEmployeesByRole(Role role) {
         return controller.getEmployeesByRole(role);
     }
 
-    public boolean hasAvailableShiftManager(int day, boolean morning, boolean evening) {
-        return controller.hasAvailableShiftManager(day, morning, evening);
+    public boolean hasAvailableShiftManager(int day, boolean morning, boolean evening, StoreBranch branch) {
+        return controller.hasAvailableShiftManager(day, morning, evening, branch);
+    }
+    
+    public boolean hasAssignedStockKeeper(Shift shift){
+        return controller.hasAssignedStockKeeper(shift);
     }
 
     public EmployeeTerms getEmployeeTerms(int employeeId) {

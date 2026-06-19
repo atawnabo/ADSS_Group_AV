@@ -4,6 +4,7 @@ import superli.domain.Role;
 import superli.domain.Shift;
 import superli.domain.ShiftAssignment;
 import superli.domain.ShiftType;
+import superli.domain.StoreBranch;
 import superli.service.EmployeeService;
 import superli.service.ShiftService;
 import java.util.Date;
@@ -80,8 +81,9 @@ public class ManagerUI {
         try {
             LocalDate date = readDate();
             ShiftType shiftType = readShiftType();
+            StoreBranch branch =  readBranch();
 
-            shiftService.createShift(date, shiftType);
+            shiftService.createShift(date, shiftType, branch);
             System.out.println("Shift created successfully.");
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
@@ -94,8 +96,9 @@ public class ManagerUI {
             ShiftType shiftType = readShiftType();
             Role role = readRole();
             int amount = readPositiveInt("Enter required amount: ");
+            StoreBranch branch = readBranch();
 
-            shiftService.addRequiredRole(date, shiftType, role, amount);
+            shiftService.addRequiredRole(date, shiftType, role, amount, branch);
             System.out.println("Required role added successfully.");
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
@@ -107,6 +110,7 @@ public class ManagerUI {
             LocalDate date = readDate();
             ShiftType shiftType = readShiftType();
             Role role = readRole();
+            StoreBranch branch = readBranch();
 
             System.out.print("Enter employee id: ");
             int id = Integer.parseInt(scanner.nextLine());
@@ -117,7 +121,7 @@ public class ManagerUI {
             }
          System.out.print("Special approval? (yes/no): ");
         boolean specialApproval = scanner.nextLine().equalsIgnoreCase("yes");
-            shiftService.assignEmployeeToShift(employee, date, shiftType, role,specialApproval);
+            shiftService.assignEmployeeToShift(employee, date, shiftType, role,specialApproval, branch);
             System.out.println("Employee assigned successfully.");
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
@@ -128,8 +132,15 @@ public class ManagerUI {
         try {
             LocalDate date = readDate();
             ShiftType shiftType = readShiftType();
+            StoreBranch branch = readBranch();
 
-            boolean isValid = shiftService.getShift(date ,shiftType).isShiftValid();
+            Shift shift = shiftService.getShift(date ,shiftType, branch);
+            if(shift == null){
+                System.out.println("Shift not found.");
+                return;
+            }
+
+            boolean isValid = shift.isShiftValid();
 
             if (isValid) {
                 System.out.println("Shift is valid.");
@@ -154,9 +165,22 @@ public class ManagerUI {
     }
 
     private Role readRole() {
-        System.out.print("Enter role (SHIFT_MANAGER/CASHIER/STOCK_KEEPER): ");
+        System.out.print("Enter role (SHIFT_MANAGER/CASHIER/STOCK_KEEPER/DRIVER): ");
         String input = scanner.nextLine().trim().toUpperCase();
         return Role.valueOf(input);
+    }
+
+    private StoreBranch readBranch(){
+        System.out.print("Enter Branch Id: ");
+        int branchId = Integer.parseInt(scanner.nextLine());
+
+        System.out.print("Enter Branch Name: ");
+        String branchName = scanner.nextLine();
+
+        System.out.print("Enter Branch Address: ");
+        String branchAddress = scanner.nextLine();
+
+        return new StoreBranch(branchId, branchName, branchAddress);
     }
 
     private int readPositiveInt(String message) {
@@ -177,6 +201,8 @@ public class ManagerUI {
 
         System.out.print("Enter name: ");
         String name = scanner.nextLine();
+
+        StoreBranch branch = readBranch();
 
         System.out.print("Enter bank name: ");
         String bankName = scanner.nextLine();
@@ -207,7 +233,7 @@ public class ManagerUI {
         List<Role> roles = new ArrayList<>();
 
         while (true) {
-            System.out.print("Enter role (CASHIER / SHIFT_MANAGER / STOCK_KEEPER) or 'done': ");
+            System.out.print("Enter role (CASHIER / SHIFT_MANAGER / STOCK_KEEPER / DRIVER) or 'done': ");
             String input = scanner.nextLine().toUpperCase();
 
             if (input.equals("DONE")) 
@@ -216,7 +242,7 @@ public class ManagerUI {
             roles.add(Role.valueOf(input));
         }
 
-        Employee employee = employeeService.addEmployee(id,name,bankName,accountNumber,roles,new Date(),employmentType,globalSalary,hourlySalary,vacationDays);
+        Employee employee = employeeService.addEmployee(id,name,bankName,accountNumber,roles,new Date(),employmentType,globalSalary,hourlySalary,vacationDays, branch);
 
         if (employee != null) {
             System.out.println("Employee added successfully");
@@ -239,6 +265,8 @@ private void viewShifts() {
 
     for (Shift shift : shifts) {
         System.out.println("---------------------------------");
+        System.out.println("Branch: " + shift.getBranch().getName()
+        + " | ID: " + shift.getBranch().getBranchId() + " | Address: " + shift.getBranch().getAddress());
         System.out.println("Date: " + shift.getDate());
         System.out.println("Shift type: " + shift.getShiftType());
         System.out.println("Required roles: " + shift.getRequiredRoles());

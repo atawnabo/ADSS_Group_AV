@@ -14,7 +14,8 @@ public class EmployeeDomainTest {
     private Employee createEmployee(int id, String name, Role... roles) {
         BankAccount bankAccount = new BankAccount("Hapoalim", 1000 + id, name);
         EmployeeTerms employeeTerms = new EmployeeTerms(new Date(), "Hourly", 0, 50, 10);
-        return new Employee(id, name, bankAccount, employeeTerms, new ArrayList<>(List.of(roles)));
+        StoreBranch testBranch = new StoreBranch(1, "Main branch", "beer sheva");
+        return new Employee(id, name, bankAccount, employeeTerms, new ArrayList<>(List.of(roles)), testBranch);
     }
 
     private ShiftAssignment createAssignment(Employee employee, Role role, LocalDate date, ShiftType shiftType) {

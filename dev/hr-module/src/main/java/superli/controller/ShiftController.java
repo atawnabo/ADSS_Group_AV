@@ -12,32 +12,32 @@ public class ShiftController {
         this.shifts = new ArrayList<>();
     }
 
-    public void createShift(LocalDate date , ShiftType shiftType){
-        if(getShift(date,shiftType) != null){
+    public void createShift(LocalDate date , ShiftType shiftType, StoreBranch branch){
+        if(getShift(date,shiftType,branch) != null){
             throw new IllegalArgumentException("Shift already exists");
         }
-        Shift newsShift = new Shift(date, shiftType);
-        shifts.add(newsShift);
+        Shift newShift = new Shift(date, shiftType, branch);
+        shifts.add(newShift);
     }
 
-    public Shift getShift(LocalDate date , ShiftType shiftType){
+    public Shift getShift(LocalDate date , ShiftType shiftType, StoreBranch branch){
         for(Shift shift : shifts){
-            if(shift.getDate().isEqual(date) && shift.getShiftType()==shiftType){
+            if(shift.getDate().isEqual(date) && shift.getShiftType()==shiftType && shift.getBranch().getBranchId() == branch.getBranchId()){
                 return shift ;
             }
         }
         return null ;
     }
-    public void addRequiredRole(LocalDate date ,ShiftType shiftType ,Role role ,int amount){
-        Shift shift = getShift(date, shiftType) ;
+    public void addRequiredRole(LocalDate date ,ShiftType shiftType ,Role role ,int amount, StoreBranch branch){
+        Shift shift = getShift(date, shiftType, branch) ;
         if(shift == null){
             throw new IllegalArgumentException("Shift does not exists");
         }
         shift.addRequiredRole(role,amount);
     }
 
-    public void addAssignment(LocalDate date ,ShiftType shiftType ,ShiftAssignment assignment){
-        Shift shift = getShift(date, shiftType) ;
+    public void addAssignment(LocalDate date ,ShiftType shiftType ,ShiftAssignment assignment, StoreBranch branch){
+        Shift shift = getShift(date, shiftType,branch) ;
         if(shift == null){
             throw new IllegalArgumentException("Shift does not exists");
         }
@@ -49,16 +49,19 @@ public class ShiftController {
         return new ArrayList<>(shifts) ;
     }
 
-    public void assignEmployeeToShift(Employee employee ,LocalDate date ,ShiftType shiftType ,Role role,boolean specialApproval){
+    public void assignEmployeeToShift(Employee employee ,LocalDate date ,ShiftType shiftType ,Role role,boolean specialApproval, StoreBranch branch){
          if (employee == null) {
          throw new IllegalArgumentException("Employee not found");
        }
-        Shift shift = getShift(date, shiftType);
+        Shift shift = getShift(date, shiftType, branch);
         if (shift == null) {
             throw new IllegalArgumentException("Shift does not exist");
         }
         if (!employee.isActive()) {
             throw new IllegalArgumentException("Employee is not active");
+        }
+        if(employee.getBranch().getBranchId() != shift.getBranch().getBranchId()){
+            throw new IllegalArgumentException("Employee and shift must belong to the same branch");
         }
         if (!employee.hasRole(role)) {
             throw new IllegalArgumentException("Employee does not have this role");
