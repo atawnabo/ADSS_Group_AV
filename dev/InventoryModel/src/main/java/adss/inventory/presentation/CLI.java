@@ -661,9 +661,10 @@ private void addItemType() {
 
         System.out.println("\n====== AVAILABLE ITEM TYPES ======");
         for (ItemType type : itemTypes) {
-            System.out.println(type.getId() + ". " + type.getName()
-                    + " | Category: " + type.getCategory().getFullPath()
-                    + " | Price: " + type.getSellingPrice());
+            System.out.printf("ID %-3d | %-22s | Category: %s%n", 
+                  type.getId(), 
+                  type.getName(), 
+                  type.getCategory().getFullPath());
         }
         System.out.println("----------------------------------");
         System.out.println("  -1. Done selecting");

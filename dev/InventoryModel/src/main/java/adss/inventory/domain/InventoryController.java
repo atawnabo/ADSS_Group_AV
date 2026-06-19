@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import adss.inventory.mock.SupplierMock;
+
 public class InventoryController {
 
     private final CategoryController categoryController;
@@ -18,12 +20,14 @@ public class InventoryController {
     private int itemIdCounter;
     private int reportIdCounter;
     private int alertIdCounter;
+    private Warehouse warehouse;
 
     public InventoryController() {
         this.categoryController = new CategoryController();
         this.discountController = new DiscountController();
         this.itemTypes = new HashMap<>();
         this.items = new HashMap<>();
+        this.warehouse = new Warehouse(1, "Main Warehouse", 10000);
 
         this.itemTypeIdCounter = 1;
         this.itemIdCounter = 1;
@@ -113,49 +117,48 @@ public class InventoryController {
         return discountController.getFinalPrice(itemType);
     }
 
-  
-
-
     // =========================================================
     // ITEM TYPE OPERATIONS
     // =========================================================
-public int addItemType(String name,
-                       int shelfNum,
-                       int aisleNum,
-                       int minQuantity,
-                       int costPrice,
-                       int sellingPrice,
-                       int categoryId,
-                       String manufacturer) {
-    Category category = categoryController.getCategoryById(categoryId);
-    if (category == null) return -1;
+    public int addItemType(String name,
+            int shelfNum,
+            int aisleNum,
+            int minQuantity,
+            int costPrice,
+            int sellingPrice,
+            int categoryId,
+            String manufacturer) {
+        Category category = categoryController.getCategoryById(categoryId);
+        if (category == null) {
+            return -1;
+        }
 
-    try {
-        Location location = new Location(shelfNum, aisleNum); // ← created here
+        try {
+            Location location = new Location(shelfNum, aisleNum); // ← created here
 
-        ItemType itemType = new ItemType(
-                itemTypeIdCounter,
-                name,
-                location,
-                0,
-                0,
-                minQuantity,
-                costPrice,
-                sellingPrice,
-                category,
-                manufacturer
-        );
+            ItemType itemType = new ItemType(
+                    itemTypeIdCounter,
+                    name,
+                    location,
+                    0,
+                    0,
+                    minQuantity,
+                    costPrice,
+                    sellingPrice,
+                    category,
+                    manufacturer
+            );
 
-        itemTypes.put(itemTypeIdCounter, itemType);
-        items.put(itemType, new ArrayList<>());
+            itemTypes.put(itemTypeIdCounter, itemType);
+            items.put(itemType, new ArrayList<>());
 
-        return itemTypeIdCounter++;
+            return itemTypeIdCounter++;
 
-    } catch (IllegalArgumentException e) {
-        System.out.println("ERROR: " + e.getMessage());
-        return -1;
+        } catch (IllegalArgumentException e) {
+            System.out.println("ERROR: " + e.getMessage());
+            return -1;
+        }
     }
-}
 
     public ItemType getItemTypeById(int itemTypeId) {
         return itemTypes.get(itemTypeId);
@@ -208,6 +211,7 @@ public int addItemType(String name,
 
         if (inWarehouse) {
             itemType.addToWarehouse(1);
+            warehouse.addItem(item);
         } else {
             itemType.setShelfQuantity(itemType.getShelfQuantity() + 1);
         }
@@ -240,6 +244,7 @@ public int addItemType(String name,
 
             if (inWarehouse) {
                 itemType.addToWarehouse(1);
+                warehouse.addItem(item);
             } else {
                 itemType.setShelfQuantity(itemType.getShelfQuantity() + 1);
             }
@@ -291,6 +296,7 @@ public int addItemType(String name,
         ItemType itemType = item.getItemType();
         itemType.addToShelf(1);
         item.setInWarehouse(false);
+        warehouse.removeItem(item);
 
         return true;
     }
@@ -312,6 +318,7 @@ public int addItemType(String name,
             if (item.isInWarehouse()) {
                 itemType.addToShelf(1);
                 item.setInWarehouse(false);
+                warehouse.removeItem(item);
                 moved++;
 
                 if (moved == amount) {
@@ -342,6 +349,7 @@ public int addItemType(String name,
         itemType.removeFromShelf(1);
         itemType.addToWarehouse(1);
         item.setInWarehouse(true);
+        warehouse.addItem(item);
 
         return true;
     }
@@ -376,87 +384,102 @@ public int addItemType(String name,
         return true;
     }
 
-  /**
- * Removes item by ID.
- * Returns Alert if stock dropped below minimum after removal, null otherwise.
- */
-public Alert removeItem(int itemId) {
-    for (Map.Entry<ItemType, List<Item>> entry : items.entrySet()) {
-        ItemType itemType = entry.getKey();
-        List<Item> itemList = entry.getValue();
+    /**
+     * Removes item by ID. Returns Alert if stock dropped below minimum after
+     * removal, null otherwise.
+     */
+    public Alert removeItem(int itemId) {
+        for (Map.Entry<ItemType, List<Item>> entry : items.entrySet()) {
+            ItemType itemType = entry.getKey();
+            List<Item> itemList = entry.getValue();
 
-        for (Item item : itemList) {
-            if (item.getId() == itemId) {
-                if (item.isInWarehouse())
-                    itemType.removeFromWarehouse(1);
-                else
-                    itemType.removeFromShelf(1);
+            for (Item item : itemList) {
+                if (item.getId() == itemId) {
+                    if (item.isInWarehouse()) {
+                        itemType.removeFromWarehouse(1);
+                        warehouse.removeItem(item);     // <-- add
+                    } else {
+                        itemType.removeFromShelf(1);
+                    }
 
-                itemList.remove(item);
+                    itemList.remove(item);
 
-                // return alert if needed - let caller decide what to do
-                return checkAndGenerateAlert(itemType);
+                    // return alert if needed - let caller decide what to do
+                    return checkAndGenerateAlert(itemType);
+                }
             }
         }
+        return null; // item not found
     }
-    return null; // item not found
-}
 
-/**
- * Checks if an ItemType has reached or dropped below minimum quantity.
- * Returns a new Alert if threshold reached, null otherwise.
- */
-private Alert checkAndGenerateAlert(ItemType itemType) {
-    if (itemType.needsRestock()) {
-        String description = "Low stock alert for " + itemType.getName()
-                + ". Current quantity: " + itemType.getTotalQuantity()
-                + ", minimum quantity: " + itemType.getMinQuantity();
-        return new Alert(alertIdCounter++, description, itemType);
+    /**
+     * Checks if an ItemType has reached or dropped below minimum quantity.
+     * Returns a new Alert if threshold reached, null otherwise.
+     */
+    private Alert checkAndGenerateAlert(ItemType itemType) {
+        if (itemType.needsRestock()) {
+            // how many units to order so stock goes back above the minimum
+            int quantity = itemType.getRequiredRestockQuantity();
+
+            // place the order through the mocked supplier module
+            int orderId = SupplierMock.createOrder(itemType, quantity);
+
+            // remember it's on the way, so we don't order again before it arrives
+            itemType.addIncoming(quantity);
+
+            String description = "Low stock alert for " + itemType.getName()
+                    + ". Current quantity: " + itemType.getTotalQuantity()
+                    + ", minimum quantity: " + itemType.getMinQuantity()
+                    + ". Ordered " + quantity + " units (order #" + orderId + ").";
+            return new Alert(alertIdCounter++, description, itemType);
+        }
+        return null;
     }
-    return null;
-}
 
-   public List<Alert> removeAllDefectiveItems() {
-    List<Alert> alerts = new ArrayList<>();
+    public List<Alert> removeAllDefectiveItems() {
+        List<Alert> alerts = new ArrayList<>();
 
-    for (Map.Entry<ItemType, List<Item>> entry : items.entrySet()) {
-        ItemType itemType = entry.getKey();
-        List<Item> itemList = entry.getValue();
-        List<Item> toRemove = new ArrayList<>();
+        for (Map.Entry<ItemType, List<Item>> entry : items.entrySet()) {
+            ItemType itemType = entry.getKey();
+            List<Item> itemList = entry.getValue();
+            List<Item> toRemove = new ArrayList<>();
 
-        // snapshot quantity BEFORE removal
-        int quantityBefore = itemType.getTotalQuantity();
+            // snapshot quantity BEFORE removal
+            int quantityBefore = itemType.getTotalQuantity();
 
-        for (Item item : itemList) {
-            if (isDefective(item)) {
-                toRemove.add(item);
-                if (item.isInWarehouse())
-                    itemType.removeFromWarehouse(1);
-                else
-                    itemType.removeFromShelf(1);
+            for (Item item : itemList) {
+                if (isDefective(item)) {
+                    toRemove.add(item);
+                    if (item.isInWarehouse()) {
+                        itemType.removeFromWarehouse(1); 
+                         warehouse.removeItem(item);     // <-- add
+                    }else {
+                        itemType.removeFromShelf(1);
+                    }
+                }
+            }
+
+            itemList.removeAll(toRemove);
+
+            // only alert if:
+            // 1. we actually removed something from this type
+            // 2. quantity crossed the threshold BECAUSE of this removal
+            if (!toRemove.isEmpty()) {
+                int quantityAfter = itemType.getTotalQuantity();
+                boolean wasOkBefore = quantityBefore >= itemType.getMinQuantity();
+                boolean isLowNow = quantityAfter < itemType.getMinQuantity();
+
+                if (wasOkBefore && isLowNow) {
+                    Alert alert = checkAndGenerateAlert(itemType);
+                    if (alert != null) {
+                        alerts.add(alert);
+                    }
+                }
             }
         }
 
-        itemList.removeAll(toRemove);
-
-        // only alert if:
-        // 1. we actually removed something from this type
-        // 2. quantity crossed the threshold BECAUSE of this removal
-        if (!toRemove.isEmpty()) {
-            int quantityAfter = itemType.getTotalQuantity();
-            boolean wasOkBefore = quantityBefore >= itemType.getMinQuantity();
-            boolean isLowNow = quantityAfter < itemType.getMinQuantity();
-
-            if (wasOkBefore && isLowNow) {
-                Alert alert = checkAndGenerateAlert(itemType);
-                if (alert != null)
-                    alerts.add(alert);
-            }
-        }
+        return alerts;
     }
-
-    return alerts;
-}
 
     // =========================================================
     // HELPERS
@@ -513,25 +536,25 @@ private Alert checkAndGenerateAlert(ItemType itemType) {
     // =========================================================
     // REPORT OPERATIONS
     // =========================================================
-   public CategoryInventoryReport createCategoryInventoryReport(List<Integer> categoryIds) {
-    List<Category> selectedCategories = new ArrayList<>();
-    Map<Category, List<ItemType>> itemsByCategory = new HashMap<>();
+    public CategoryInventoryReport createCategoryInventoryReport(List<Integer> categoryIds) {
+        List<Category> selectedCategories = new ArrayList<>();
+        Map<Category, List<ItemType>> itemsByCategory = new HashMap<>();
 
-    for (int categoryId : categoryIds) {
-        Category category = categoryController.getCategoryById(categoryId);
-        if (category != null) {
-            selectedCategories.add(category);
-            itemsByCategory.put(category, getItemTypesByCategory(categoryId));
+        for (int categoryId : categoryIds) {
+            Category category = categoryController.getCategoryById(categoryId);
+            if (category != null) {
+                selectedCategories.add(category);
+                itemsByCategory.put(category, getItemTypesByCategory(categoryId));
+            }
         }
-    }
 
-    return new CategoryInventoryReport(
-            reportIdCounter++,
-            LocalDate.now(),
-            selectedCategories,
-            itemsByCategory
-    );
-}
+        return new CategoryInventoryReport(
+                reportIdCounter++,
+                LocalDate.now(),
+                selectedCategories,
+                itemsByCategory
+        );
+    }
 
     public DefectiveItemReport createDefectiveItemReport() {
         Map<ItemType, List<Item>> defectiveItems = new HashMap<>();

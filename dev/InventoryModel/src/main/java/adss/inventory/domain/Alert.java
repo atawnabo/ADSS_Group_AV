@@ -3,6 +3,7 @@ package adss.inventory.domain;
 import java.util.Objects;
 
 public class Alert {
+
     private final int id;
     private String description;
     private ItemType itemType;
@@ -51,17 +52,22 @@ public class Alert {
 
     @Override
     public String toString() {
-        return "=== Alert ===\n" +
-                "ID: " + id + "\n" +
-                "Description: " + description + "\n" +
-                "Item: " + itemType.getName() + "\n" +
-                "Current Quantity: " + itemType.getTotalQuantity() + "\n";
+        return String.format(
+                "=== Alert ===%n"
+                + "ID: %d%n"
+                + "Description: %s%n",
+                id, description
+        );
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Alert)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Alert)) {
+            return false;
+        }
         Alert alert = (Alert) o;
         return id == alert.id;
     }

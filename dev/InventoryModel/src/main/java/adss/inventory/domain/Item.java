@@ -108,15 +108,18 @@ public class Item {
 
     @Override
     public String toString() {
-        return "ID: " + itemID
-                + " | Type: " + itemType.getName()
-                + " | Location: " + (inWarehouse ? "Warehouse" : "Shelf")
-                + " | Cost: " + itemPrice
-                + " | Sell: " + itemSellPrice
-                + " | Expires: " + (expirationDate != null ? expirationDate : "N/A")
-                + " | Damaged: " + (damaged ? "YES" : "No")
-                + " | Expired: " + (isExpired() ? "YES" : "No")
-                + " | Available: " + (isAvailableForSale() ? "Yes" : "NO");
+        return String.format(
+                "ID %-3d | Type: %-22s | Loc: %-9s | Cost: %-5s | Sell: %-5s | Exp: %-10s | Dmg: %-3s | Expired: %-3s | Avail: %-3s",
+                itemID,
+                itemType.getName(),
+                inWarehouse ? "Warehouse" : "Shelf",
+                itemPrice,
+                itemSellPrice,
+                expirationDate != null ? expirationDate : "N/A",
+                damaged ? "YES" : "No",
+                isExpired() ? "YES" : "No",
+                isAvailableForSale() ? "Yes" : "NO"
+        );
     }
 
     @Override
