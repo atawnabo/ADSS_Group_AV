@@ -14,6 +14,7 @@ public class ItemType {
     private int sellingPrice;
     private Category category;
     private String manufacturer;
+    private int incomingQuantity = 0;   // units already ordered, not yet arrived
 
     public ItemType(int id, String name, Location storeLocation,
             int shelfQuantity, int warehouseQuantity, int minQuantity,
@@ -152,10 +153,6 @@ public class ItemType {
         return shelfQuantity + warehouseQuantity;
     }
 
-    public boolean needsRestock() {
-        return getTotalQuantity() <= minQuantity;
-    }
-
     public void addToShelf(int amount) {
         if (amount < 0) {
             throw new IllegalArgumentException("Amount must be non-negative");
@@ -191,18 +188,13 @@ public class ItemType {
 
     @Override
     public String toString() {
-        return "ID: " + id
-                + " | Name: " + name
-                + " | Manufacturer: " + manufacturer
-                + " | Category: " + (category != null ? category.getFullPath() : "None")
-                + " | Location: " + storeLocation
-                + " | Cost: " + costPrice
-                + " | Price: " + sellingPrice
-                + " | Shelf: " + shelfQuantity
-                + " | Warehouse: " + warehouseQuantity
-                + " | Total: " + getTotalQuantity()
-                + " | Min: " + minQuantity
-                + " | Restock: " + (needsRestock() ? "⚠ YES" : "OK");
+        return String.format(
+                "ID %-3d | %-22s | location %-6s | shelf %2d | warehouse %2d | total %3d | minimum %3d | incoming %3d | restock %s",
+                id, name,
+                "S" + storeLocation.getShelfNum() + "-A" + storeLocation.getAisleNum(),
+                shelfQuantity, warehouseQuantity, getTotalQuantity(), minQuantity,
+                incomingQuantity,
+                needsRestock() ? "YES" : "no");
     }
 
     @Override
@@ -220,5 +212,22 @@ public class ItemType {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public boolean needsRestock() {
+        return (getTotalQuantity() + incomingQuantity) < minQuantity;
+    }
+
+    public int getRequiredRestockQuantity() {
+        // order enough so projected stock ends up above the minimum
+        return (minQuantity - (getTotalQuantity() + incomingQuantity) + 1);
+    }
+
+    public void addIncoming(int quantity) {
+        incomingQuantity += quantity;
+    }
+
+    public int getIncomingQuantity() {
+        return incomingQuantity;
     }
 }
