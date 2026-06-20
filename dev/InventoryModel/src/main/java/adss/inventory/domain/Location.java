@@ -3,6 +3,7 @@ package adss.inventory.domain;
 import java.util.Objects;
 
 public class Location {
+
     private int shelfNum;
     private int aisleNum;
 
@@ -39,19 +40,20 @@ public class Location {
 
     @Override
     public String toString() {
-        return "Location{" +
-                "shelfNum=" + shelfNum +
-                ", aisleNum=" + aisleNum +
-                '}';
+        return "shelf " + shelfNum + ", aisle " + aisleNum;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Location)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Location)) {
+            return false;
+        }
         Location location = (Location) o;
-        return shelfNum == location.shelfNum &&
-               aisleNum == location.aisleNum;
+        return shelfNum == location.shelfNum
+                && aisleNum == location.aisleNum;
     }
 
     @Override
