@@ -1,0 +1,31 @@
+# Maven
+target/
+
+# Compiled Java files
+*.class
+
+# Logs
+*.log
+
+# IntelliJ
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# SQLite database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/
+
+# Maven Wrapper
+.mvn/wrapper/maven-wrapper.jar
