@@ -33,9 +33,13 @@ public class Shift {
     public Map<Role,Integer> getRequiredRoles(){
         return requiredRoles ;
     }
-    public StoreBranch getBranch(){
-        return branch;
-    }
+    public StoreBranch getBranch() {
+    return branch;
+}
+
+public void setBranch(StoreBranch branch) {
+    this.branch = branch;
+}
 
     public void addAssignment(ShiftAssignment assignment){
         assignments.add(assignment);

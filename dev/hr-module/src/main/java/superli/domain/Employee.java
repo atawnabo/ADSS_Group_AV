@@ -47,10 +47,25 @@ public class Employee extends User {
 
     public List<Availability> getAvailability() { return availability; }
 
-    public StoreBranch getBranch(){ return branch;}
+   public StoreBranch getBranch() {
+    return branch;
+}
 
-    public void setBranch(StoreBranch branch) {this.branch = branch ;}
+public void assignToBranch(StoreBranch branch) {
+    this.branch = branch;
+}
 
+public boolean belongsToBranch(StoreBranch branch) {
+    if (this.branch == null || branch == null) {
+        return false;
+    }
+
+    return this.branch.getBranchId() == branch.getBranchId();
+}
+
+public boolean belongsToBranch(int branchId) {
+    return this.branch != null && this.branch.getBranchId() == branchId;
+}
     public boolean isActive() { return active; }
 
     public void setActive(boolean active) {
@@ -117,4 +132,10 @@ public class Employee extends User {
         shiftScheduled.clear();
         availability.clear();
     }
+
+public void updateDetails(String name, BankAccount bankDetails, EmployeeTerms employeeTerms) {
+    this.name = name;
+    this.bankDetails = bankDetails;
+    this.employeeTerms = employeeTerms;
 }
+ }

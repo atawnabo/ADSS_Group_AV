@@ -37,4 +37,7 @@ public class ShiftService {
     public void assignEmployeeToShift(Employee employee ,LocalDate date ,ShiftType shiftType ,Role role,boolean specialApproval, StoreBranch branch){
         shiftController.assignEmployeeToShift(employee, date, shiftType, role,specialApproval, branch);
     }
+    public boolean hasStockKeeper(LocalDate date, ShiftType shiftType, StoreBranch branch) {
+    return shiftController.hasStockKeeper(date, shiftType, branch);
+}
 }

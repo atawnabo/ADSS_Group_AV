@@ -13,11 +13,15 @@ public class ShiftController {
     }
 
     public void createShift(LocalDate date , ShiftType shiftType, StoreBranch branch){
+        
         if(getShift(date,shiftType,branch) != null){
             throw new IllegalArgumentException("Shift already exists");
         }
         Shift newShift = new Shift(date, shiftType, branch);
         shifts.add(newShift);
+         if (branch != null) {
+        branch.addShift(newShift);
+    }
     }
 
     public Shift getShift(LocalDate date , ShiftType shiftType, StoreBranch branch){
@@ -36,14 +40,20 @@ public class ShiftController {
         shift.addRequiredRole(role,amount);
     }
 
-    public void addAssignment(LocalDate date ,ShiftType shiftType ,ShiftAssignment assignment, StoreBranch branch){
-        Shift shift = getShift(date, shiftType,branch) ;
-        if(shift == null){
-            throw new IllegalArgumentException("Shift does not exists");
-        }
-        shift.addAssignment(assignment);
-     
+   public void addAssignment(LocalDate date, ShiftType shiftType, ShiftAssignment assignment, StoreBranch branch) {
+    if (assignment == null) {
+        throw new IllegalArgumentException("Assignment is required");
     }
+
+    assignEmployeeToShift(
+            assignment.getEmployee(),
+            date,
+            shiftType,
+            assignment.getRole(),
+            false,
+            branch
+    );
+}
 
     public List<Shift> getShifts(){
         return new ArrayList<>(shifts) ;
@@ -95,6 +105,37 @@ public class ShiftController {
         employee.addShift(assignment);
     }
     
+  public boolean hasStockKeeper(LocalDate date, ShiftType shiftType, StoreBranch branch) {
+    if (date == null) {
+        throw new IllegalArgumentException("Date is required");
+    }
 
+    if (shiftType == null) {
+        throw new IllegalArgumentException("Shift type is required");
+    }
 
+    if (branch == null) {
+        throw new IllegalArgumentException("Branch is required");
+    }
+
+    Shift shift = getShift(date, shiftType, branch);
+
+    if (shift == null) {
+        return false;
+    }
+
+    for (ShiftAssignment assignment : shift.getAssignments()) {
+        Employee employee = assignment.getEmployee();
+
+        if (assignment.getRole() == Role.STOCK_KEEPER
+                && employee != null
+                && employee.isActive()
+                && employee.getBranch() != null
+                && employee.getBranch().getBranchId() == shift.getBranch().getBranchId()) {
+            return true;
+        }
+    }
+
+    return false;
+}
 }

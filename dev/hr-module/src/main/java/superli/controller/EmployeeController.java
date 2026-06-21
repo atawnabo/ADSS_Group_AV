@@ -2,6 +2,7 @@ package superli.controller;
 
 import superli.domain.*;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -17,6 +18,9 @@ public class EmployeeController {
     }
 
     public Employee addEmployee(int id,String name,String bankName, int accountNumber,List<Role> rolesList,EmployeeTerms employeeTerms, StoreBranch branch) {
+          if (branch == null) {
+        throw new IllegalArgumentException("Branch is required");
+             }
         if (employees.containsKey(id)) {
             System.out.println("Employee already exists");
             return null;
@@ -25,12 +29,17 @@ public class EmployeeController {
         BankAccount bankDetails = new BankAccount(bankName, accountNumber, name);
         Employee employee = new Employee(id, name, bankDetails, employeeTerms, rolesList, branch);
         employees.put(id, employee);
+        branch.addEmployee(employee);
         return employee;
+
     }
+    
 
 
     public Employee addEmployee(int id, String name,String bankName,int accountNumber,List<Role> rolesList,Date startDate,String employmentType,double globalSalary,double hourlySalary,int vacationDays,StoreBranch branch) {
-
+          if (branch == null) {
+    throw new IllegalArgumentException("Branch is required");
+                    }
         EmployeeTerms employeeTerms = new EmployeeTerms(startDate,employmentType,globalSalary,hourlySalary,vacationDays);
 
           return addEmployee(id, name, bankName, accountNumber, rolesList, employeeTerms, branch);
@@ -136,8 +145,13 @@ public class EmployeeController {
             Integer employeeId = entry.getKey();
             Employee employee = entry.getValue();
 
-            if (employee.isActive() && employee.hasRole(selectedRole)&& employee.canWork(dayOfWeek, isMorning, isEvening) && employee.getBranch().equals(branch)) 
-                {
+           if (employee.isActive()
+            && employee.hasRole(selectedRole)
+            && employee.canWork(dayOfWeek, isMorning, isEvening)
+            && employee.getBranch() != null
+             && branch != null
+             && employee.getBranch().getBranchId() == branch.getBranchId()) {
+                
                 availableEmployees.add(employeeId);
             }
         }
@@ -147,16 +161,6 @@ public class EmployeeController {
 
     public boolean hasAvailableShiftManager(int day, boolean isMorning, boolean isEvening, StoreBranch branch) {
         return !getAvailableEmployees(Role.SHIFT_MANAGER, day, isMorning, isEvening, branch).isEmpty();
-    }
-
-    public boolean hasAssignedStockKeeper(Shift shift) {
-        for (ShiftAssignment assignment : shift.getAssignments()) {
-            Employee employee = assignment.getEmployee();
-            if (employee.isActive() && employee.hasRole(Role.STOCK_KEEPER) && employee.getBranch().getBranchId() == shift.getBranch().getBranchId()) {
-               return true;
-            }
-        }
-        return false;
     }
 
     public List<Role> getEmployeeRoles(int employeeId) {
@@ -216,4 +220,141 @@ public class EmployeeController {
         employee.setLoggedIn(false);
         return true;
     }
+
+
+
+  public Employee addDriver(int id, String name, String bankName, int accountNumber,
+                          List<Role> rolesList, EmployeeTerms employeeTerms,
+                          StoreBranch branch, String licenseType) {
+
+    if (branch == null) {
+        throw new IllegalArgumentException("Branch is required");
+    }
+
+    if (licenseType == null || licenseType.isEmpty()) {
+        throw new IllegalArgumentException("License type is required");
+    }
+
+    if (employees.containsKey(id)) {
+        System.out.println("Employee already exists");
+        return null;
+    }
+
+    List<Role> driverRoles = new ArrayList<>(rolesList);
+
+    if (!driverRoles.contains(Role.DRIVER)) {
+        driverRoles.add(Role.DRIVER);
+    }
+
+    BankAccount bankDetails = new BankAccount(bankName, accountNumber, name);
+
+    Driver driver = new Driver(
+            id,
+            name,
+            bankDetails,
+            employeeTerms,
+            driverRoles,
+            branch,
+            licenseType
+    );
+
+    employees.put(id, driver);
+    branch.addEmployee(driver);
+
+    return driver;
+}
+
+
+    public List<Integer> getAvailableDrivers(LocalDate date,
+                                          ShiftType shiftType,
+                                          String licenseType,
+                                          StoreBranch branch) {
+
+    if (date == null) {
+        throw new IllegalArgumentException("Date is required");
+    }
+
+    if (shiftType == null) {
+        throw new IllegalArgumentException("Shift type is required");
+    }
+
+    if (licenseType == null || licenseType.isEmpty()) {
+        throw new IllegalArgumentException("License type is required");
+    }
+
+    if (branch == null) {
+        throw new IllegalArgumentException("Branch is required");
+    }
+
+    List<Integer> availableDrivers = new ArrayList<>();
+
+    boolean isMorning = shiftType == ShiftType.MORNING;
+    boolean isEvening = shiftType == ShiftType.EVENING;
+    int day = date.getDayOfWeek().getValue();
+
+    for (Map.Entry<Integer, Employee> entry : employees.entrySet()) {
+        Integer employeeId = entry.getKey();
+        Employee employee = entry.getValue();
+
+        if (!employee.isActive()) {
+            continue;
+        }
+
+        if (!employee.hasRole(Role.DRIVER)) {
+            continue;
+        }
+
+        if (employee.getBranch() == null ||
+                employee.getBranch().getBranchId() != branch.getBranchId()) {
+            continue;
+        }
+
+        if (!(employee instanceof Driver)) {
+            continue;
+        }
+
+        Driver driver = (Driver) employee;
+
+        if (driver.getLicenseType() == null ||
+                !driver.getLicenseType().equals(licenseType)) {
+            continue;
+        }
+
+        if (!driver.canWork(day, isMorning, isEvening)) {
+            continue;
+        }
+
+        availableDrivers.add(employeeId);
+    }
+
+    return availableDrivers;
+}
+public boolean updateEmployee(int id,
+                              String name,
+                              String bankName,
+                              int accountNumber,
+                              EmployeeTerms employeeTerms,
+                              StoreBranch branch) {
+    Employee employee = employees.get(id);
+
+    if (employee == null) {
+        return false;
+    }
+
+    if (branch == null) {
+        throw new IllegalArgumentException("Branch is required");
+    }
+
+    BankAccount bankDetails = new BankAccount(bankName, accountNumber, name);
+    employee.updateDetails(name, bankDetails, employeeTerms);
+
+StoreBranch oldBranch = employee.getBranch();
+if (oldBranch != null && oldBranch.getBranchId() != branch.getBranchId()) {
+    oldBranch.removeEmployee(employee);
+}
+
+employee.assignToBranch(branch);
+branch.addEmployee(employee);
+    return true;
+}
 }

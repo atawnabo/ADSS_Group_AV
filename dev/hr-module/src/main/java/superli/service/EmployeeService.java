@@ -3,6 +3,7 @@ package superli.service;
 import superli.controller.EmployeeController;
 import superli.domain.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -81,10 +82,6 @@ public class EmployeeService {
         return controller.hasAvailableShiftManager(day, morning, evening, branch);
     }
     
-    public boolean hasAssignedStockKeeper(Shift shift){
-        return controller.hasAssignedStockKeeper(shift);
-    }
-
     public EmployeeTerms getEmployeeTerms(int employeeId) {
         return controller.getEmployeeTerms(employeeId);
     }
@@ -99,4 +96,71 @@ public class EmployeeService {
     public boolean logout(int id) {
         return controller.logout(id);
     }
+    public Employee addDriver(int id,
+                          String name,
+                          String bankName,
+                          int accountNumber,
+                          List<Role> rolesList,
+                          EmployeeTerms employeeTerms,
+                          StoreBranch branch,
+                          String licenseType) {
+
+    return controller.addDriver(
+            id,
+            name,
+            bankName,
+            accountNumber,
+            rolesList,
+            employeeTerms,
+            branch,
+            licenseType
+    );
+}
+public List<Integer> getAvailableDrivers(LocalDate date,
+                                         ShiftType shiftType,
+                                         String licenseType,
+                                         StoreBranch branch) {
+    return controller.getAvailableDrivers(date, shiftType, licenseType, branch);
+}
+public Employee addDriver(int id,
+                          String name,
+                          String bankName,
+                          int accountNumber,
+                          List<Role> rolesList,
+                          Date startDate,
+                          String employmentType,
+                          double globalSalary,
+                          double hourlySalary,
+                          int vacationDays,
+                          StoreBranch branch,
+                          String licenseType) {
+
+    EmployeeTerms employeeTerms = new EmployeeTerms(
+            startDate,
+            employmentType,
+            globalSalary,
+            hourlySalary,
+            vacationDays
+    );
+
+    return controller.addDriver(
+            id,
+            name,
+            bankName,
+            accountNumber,
+            rolesList,
+            employeeTerms,
+            branch,
+            licenseType
+    );
+}
+public boolean updateEmployee(int id,
+                              String name,
+                              String bankName,
+                              int accountNumber,
+                              EmployeeTerms employeeTerms,
+                              StoreBranch branch) {
+    return controller.updateEmployee(id, name, bankName, accountNumber, employeeTerms, branch);
+}
+
 }
