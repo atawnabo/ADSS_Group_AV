@@ -44,4 +44,16 @@ public class ServiceController {
     public InventoryController getInventoryController() {
         return inventoryController;
     }
+
+    public void loadDataFromDatabase() {
+        inventoryController.loadDataFromDatabase();
+    }
+
+    public void initializeSimpleData() {
+        inventoryController.initializeSimpleData();
+    }
+
+    public void clearSystemData() {
+        inventoryController.clearSystemData();
+    }
 }

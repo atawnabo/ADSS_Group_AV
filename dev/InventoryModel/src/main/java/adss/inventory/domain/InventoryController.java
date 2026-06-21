@@ -7,11 +7,28 @@ import java.util.List;
 import java.util.Map;
 
 import adss.inventory.mock.SupplierMock;
+import adss.inventory.repository.DatabaseInitializer;
+import adss.inventory.repository.dao.AlertDAO;
+import adss.inventory.repository.dao.CategoryDAO;
+import adss.inventory.repository.dao.DiscountDAO;
+import adss.inventory.repository.dao.ItemDAO;
+import adss.inventory.repository.dao.ItemTypeDAO;
+import adss.inventory.repository.dto.AlertDTO;
+import adss.inventory.repository.dto.CategoryDTO;
+import adss.inventory.repository.dto.DiscountDTO;
+import adss.inventory.repository.dto.ItemDTO;
+import adss.inventory.repository.dto.ItemTypeDTO;
 
 public class InventoryController {
 
     private final CategoryController categoryController;
     private final DiscountController discountController;
+
+    private final CategoryDAO categoryDAO;
+    private final ItemTypeDAO itemTypeDAO;
+    private final ItemDAO itemDAO;
+    private final DiscountDAO discountDAO;
+    private final AlertDAO alertDAO;
 
     private final Map<Integer, ItemType> itemTypes;
     private final Map<ItemType, List<Item>> items;
@@ -23,8 +40,16 @@ public class InventoryController {
     private Warehouse warehouse;
 
     public InventoryController() {
+        DatabaseInitializer.initialize();
         this.categoryController = new CategoryController();
         this.discountController = new DiscountController();
+
+        this.categoryDAO = new CategoryDAO();
+        this.itemTypeDAO = new ItemTypeDAO();
+        this.itemDAO = new ItemDAO();
+        this.discountDAO = new DiscountDAO();
+        this.alertDAO = new AlertDAO();
+
         this.itemTypes = new HashMap<>();
         this.items = new HashMap<>();
         this.warehouse = new Warehouse(1, "Main Warehouse", 10000);
@@ -36,14 +61,212 @@ public class InventoryController {
     }
 
     // =========================================================
+    // LOAD DATA FROM DATABASE
+    // =========================================================
+    public void loadDataFromDatabase() {
+        loadCategoriesFromDatabase();
+        loadItemTypesFromDatabase();
+        loadItemsFromDatabase();
+        loadDiscountsFromDatabase();
+        updateCountersAfterLoad();
+    }
+
+    private void loadCategoriesFromDatabase() {
+        List<CategoryDTO> dtos = categoryDAO.findAll();
+        Map<Integer, Category> loadedCategories = new HashMap<>();
+
+        boolean progress = true;
+
+        while (loadedCategories.size() < dtos.size() && progress) {
+            progress = false;
+
+            for (CategoryDTO dto : dtos) {
+                if (loadedCategories.containsKey(dto.getId())) {
+                    continue;
+                }
+
+                Integer parentId = dto.getParentId();
+
+                if (parentId == null) {
+                    Category category = new Category(dto.getId(), dto.getName());
+                    loadedCategories.put(dto.getId(), category);
+                    progress = true;
+                } else {
+                    Category parent = loadedCategories.get(parentId);
+                    if (parent != null) {
+                        Category category = new Category(dto.getId(), dto.getName(), parent);
+                        parent.addChild(category);
+                        loadedCategories.put(dto.getId(), category);
+                        progress = true;
+                    }
+                }
+            }
+        }
+
+        categoryController.loadCategories(new ArrayList<>(loadedCategories.values()));
+    }
+
+    private void loadItemTypesFromDatabase() {
+        itemTypes.clear();
+        items.clear();
+
+        for (ItemTypeDTO dto : itemTypeDAO.findAll()) {
+            Category category = categoryController.getCategoryById(dto.getCategoryId());
+            if (category == null) {
+                continue;
+            }
+
+            Location location = new Location(
+                    dto.getShelfNum() == null ? 0 : dto.getShelfNum(),
+                    dto.getAisleNum() == null ? 0 : dto.getAisleNum()
+            );
+
+            ItemType itemType = new ItemType(
+                    dto.getId(),
+                    dto.getName(),
+                    location,
+                    dto.getShelfQuantity(),
+                    dto.getWarehouseQuantity(),
+                    dto.getMinQuantity(),
+                    dto.getCostPrice(),
+                    dto.getSellingPrice(),
+                    category,
+                    dto.getManufacturer()
+            );
+
+            itemTypes.put(itemType.getId(), itemType);
+            items.put(itemType, new ArrayList<>());
+        }
+    }
+
+    private void loadItemsFromDatabase() {
+        this.warehouse = new Warehouse(1, "Main Warehouse", 10000);
+
+        for (ItemDTO dto : itemDAO.findAll()) {
+            ItemType itemType = itemTypes.get(dto.getItemTypeId());
+            if (itemType == null) {
+                continue;
+            }
+
+            LocalDate expirationDate = dto.getExpirationDate() == null
+                    ? null
+                    : LocalDate.parse(dto.getExpirationDate());
+
+            Item item = new Item(
+                    itemType,
+                    dto.getId(),
+                    dto.getSellDiscount(),
+                    dto.getBuyDiscount(),
+                    expirationDate,
+                    dto.isDamaged(),
+                    dto.isInWarehouse()
+            );
+
+            items.get(itemType).add(item);
+
+            if (item.isInWarehouse()) {
+                warehouse.addItem(item);
+            }
+        }
+    }
+
+    private void loadDiscountsFromDatabase() {
+        List<Discount> loadedDiscounts = new ArrayList<>();
+
+        for (DiscountDTO dto : discountDAO.findAll()) {
+            LocalDate startDate = LocalDate.parse(dto.getStartDate());
+            LocalDate endDate = LocalDate.parse(dto.getEndDate());
+
+            if ("ITEM".equals(dto.getDiscountType())) {
+                List<ItemType> targetItems = new ArrayList<>();
+
+                for (int itemTypeId : discountDAO.findItemTargets(dto.getId())) {
+                    ItemType itemType = itemTypes.get(itemTypeId);
+                    if (itemType != null) {
+                        targetItems.add(itemType);
+                    }
+                }
+
+                loadedDiscounts.add(new ItemsDiscount(
+                        dto.getId(),
+                        dto.getPercentage(),
+                        startDate,
+                        endDate,
+                        targetItems
+                ));
+
+            } else if ("CATEGORY".equals(dto.getDiscountType())) {
+                List<Category> targetCategories = new ArrayList<>();
+
+                for (int categoryId : discountDAO.findCategoryTargets(dto.getId())) {
+                    Category category = categoryController.getCategoryById(categoryId);
+                    if (category != null) {
+                        targetCategories.add(category);
+                    }
+                }
+
+                loadedDiscounts.add(new CategoryDiscount(
+                        dto.getId(),
+                        dto.getPercentage(),
+                        startDate,
+                        endDate,
+                        targetCategories
+                ));
+            }
+        }
+
+        discountController.loadDiscounts(loadedDiscounts);
+    }
+
+    private void updateCountersAfterLoad() {
+        int maxCategoryId = 0;
+        for (Category category : categoryController.getAllCategories()) {
+            maxCategoryId = Math.max(maxCategoryId, category.getId());
+        }
+
+        int maxItemTypeId = 0;
+        for (ItemType itemType : itemTypes.values()) {
+            maxItemTypeId = Math.max(maxItemTypeId, itemType.getId());
+        }
+
+        int maxItemId = 0;
+        for (Item item : getAllItems()) {
+            maxItemId = Math.max(maxItemId, item.getId());
+        }
+
+        int maxDiscountId = 0;
+        for (Discount discount : discountController.getAllDiscounts()) {
+            maxDiscountId = Math.max(maxDiscountId, discount.getId());
+        }
+
+        int maxAlertId = 0;
+        for (AlertDTO alert : alertDAO.findAll()) {
+            maxAlertId = Math.max(maxAlertId, alert.getId());
+        }
+
+        this.itemTypeIdCounter = maxItemTypeId + 1;
+        this.itemIdCounter = maxItemId + 1;
+        this.reportIdCounter = 1;
+        this.alertIdCounter = maxAlertId + 1;
+    }
+
+    // =========================================================
     // CATEGORY OPERATIONS
     // =========================================================
     public String addCategory(String name) {
-        return categoryController.addCategory(name);
+        String result = categoryController.addCategory(name);
+        if ("OK".equals(result)) {
+            saveAllCategoriesToDatabase();
+        }
+        return result;
     }
 
     public String addCategory(String name, int parentId) {
-        return categoryController.addCategory(name, parentId);
+        String result = categoryController.addCategory(name, parentId);
+        if ("OK".equals(result)) {
+            saveAllCategoriesToDatabase();
+        }
+        return result;
     }
 
     public List<Category> getAllCategories() {
@@ -65,6 +288,7 @@ public class InventoryController {
             LocalDate startDate,
             LocalDate endDate,
             List<Integer> itemIds) {
+
         List<ItemType> targetItems = new ArrayList<>();
 
         for (int id : itemIds) {
@@ -75,14 +299,21 @@ public class InventoryController {
             targetItems.add(item);
         }
 
-        return discountController.addItemDiscount(
+        String result = discountController.addItemDiscount(
                 percentage, startDate, endDate, targetItems);
+
+        if ("OK".equals(result)) {
+            saveAllDiscountsToDatabase();
+        }
+
+        return result;
     }
 
     public String addCategoryDiscount(double percentage,
             LocalDate startDate,
             LocalDate endDate,
             List<Integer> categoryIds) {
+
         List<Category> targetCategories = new ArrayList<>();
 
         for (int id : categoryIds) {
@@ -93,8 +324,14 @@ public class InventoryController {
             targetCategories.add(category);
         }
 
-        return discountController.addCategoryDiscount(
+        String result = discountController.addCategoryDiscount(
                 percentage, startDate, endDate, targetCategories);
+
+        if ("OK".equals(result)) {
+            saveAllDiscountsToDatabase();
+        }
+
+        return result;
     }
 
     public List<Discount> getActiveDiscountsForItem(int itemTypeId) {
@@ -128,13 +365,14 @@ public class InventoryController {
             int sellingPrice,
             int categoryId,
             String manufacturer) {
+
         Category category = categoryController.getCategoryById(categoryId);
         if (category == null) {
             return -1;
         }
 
         try {
-            Location location = new Location(shelfNum, aisleNum); // ← created here
+            Location location = new Location(shelfNum, aisleNum);
 
             ItemType itemType = new ItemType(
                     itemTypeIdCounter,
@@ -151,6 +389,8 @@ public class InventoryController {
 
             itemTypes.put(itemTypeIdCounter, itemType);
             items.put(itemType, new ArrayList<>());
+
+            saveItemTypeToDatabase(itemType);
 
             return itemTypeIdCounter++;
 
@@ -176,6 +416,7 @@ public class InventoryController {
 
         try {
             itemType.setMinQuantity(minQuantity);
+            saveItemTypeToDatabase(itemType);
             return true;
         } catch (IllegalArgumentException e) {
             System.out.println("ERROR: " + e.getMessage());
@@ -192,6 +433,7 @@ public class InventoryController {
             LocalDate expirationDate,
             boolean damaged,
             boolean inWarehouse) {
+
         ItemType itemType = itemTypes.get(itemTypeId);
         if (itemType == null) {
             return -1;
@@ -216,11 +458,15 @@ public class InventoryController {
             itemType.setShelfQuantity(itemType.getShelfQuantity() + 1);
         }
 
+        saveItemTypeToDatabase(itemType);
+        saveItemToDatabase(item);
+
         return itemIdCounter++;
     }
 
     public int addItems(int itemTypeId, int amount,
             LocalDate expirationDate, boolean inWarehouse) {
+
         if (amount <= 0) {
             return -1;
         }
@@ -234,12 +480,13 @@ public class InventoryController {
             Item item = new Item(
                     itemType,
                     itemIdCounter++,
-                    0, // sellDiscount
-                    0, // buyDiscount
+                    0,
+                    0,
                     expirationDate,
                     false,
                     inWarehouse
             );
+
             items.get(itemType).add(item);
 
             if (inWarehouse) {
@@ -248,7 +495,11 @@ public class InventoryController {
             } else {
                 itemType.setShelfQuantity(itemType.getShelfQuantity() + 1);
             }
+
+            saveItemToDatabase(item);
         }
+
+        saveItemTypeToDatabase(itemType);
 
         return amount;
     }
@@ -285,11 +536,7 @@ public class InventoryController {
 
     public boolean moveItemToShelf(int itemId) {
         Item item = getItemById(itemId);
-        if (item == null) {
-            return false;
-        }
-
-        if (!item.isInWarehouse()) {
+        if (item == null || !item.isInWarehouse()) {
             return false;
         }
 
@@ -297,6 +544,9 @@ public class InventoryController {
         itemType.addToShelf(1);
         item.setInWarehouse(false);
         warehouse.removeItem(item);
+
+        saveItemTypeToDatabase(itemType);
+        saveItemToDatabase(item);
 
         return true;
     }
@@ -319,24 +569,23 @@ public class InventoryController {
                 itemType.addToShelf(1);
                 item.setInWarehouse(false);
                 warehouse.removeItem(item);
+                saveItemToDatabase(item);
                 moved++;
 
                 if (moved == amount) {
+                    saveItemTypeToDatabase(itemType);
                     return true;
                 }
             }
         }
 
+        saveItemTypeToDatabase(itemType);
         return moved == amount;
     }
 
     public boolean moveItemToWarehouse(int itemId) {
         Item item = getItemById(itemId);
-        if (item == null) {
-            return false;
-        }
-
-        if (item.isInWarehouse()) {
+        if (item == null || item.isInWarehouse()) {
             return false;
         }
 
@@ -351,6 +600,9 @@ public class InventoryController {
         item.setInWarehouse(true);
         warehouse.addItem(item);
 
+        saveItemTypeToDatabase(itemType);
+        saveItemToDatabase(item);
+
         return true;
     }
 
@@ -361,6 +613,7 @@ public class InventoryController {
         }
 
         item.setDamaged(true);
+        saveItemToDatabase(item);
         return true;
     }
 
@@ -371,6 +624,7 @@ public class InventoryController {
         }
 
         item.setDamaged(false);
+        saveItemToDatabase(item);
         return true;
     }
 
@@ -381,58 +635,57 @@ public class InventoryController {
         }
 
         item.setExpirationDate(newDate);
+        saveItemToDatabase(item);
         return true;
     }
 
-    /**
-     * Removes item by ID. Returns Alert if stock dropped below minimum after
-     * removal, null otherwise.
-     */
     public Alert removeItem(int itemId) {
         for (Map.Entry<ItemType, List<Item>> entry : items.entrySet()) {
             ItemType itemType = entry.getKey();
             List<Item> itemList = entry.getValue();
 
-            for (Item item : itemList) {
+            for (Item item : new ArrayList<>(itemList)) {
                 if (item.getId() == itemId) {
                     if (item.isInWarehouse()) {
                         itemType.removeFromWarehouse(1);
-                        warehouse.removeItem(item);     // <-- add
+                        warehouse.removeItem(item);
                     } else {
                         itemType.removeFromShelf(1);
                     }
 
                     itemList.remove(item);
+                    itemDAO.delete(itemId);
+                    saveItemTypeToDatabase(itemType);
 
-                    // return alert if needed - let caller decide what to do
-                    return checkAndGenerateAlert(itemType);
+                    Alert alert = checkAndGenerateAlert(itemType);
+                    if (alert != null) {
+                        saveAlertToDatabase(alert);
+                    }
+
+                    return alert;
                 }
             }
         }
-        return null; // item not found
+
+        return null;
     }
 
-    /**
-     * Checks if an ItemType has reached or dropped below minimum quantity.
-     * Returns a new Alert if threshold reached, null otherwise.
-     */
     private Alert checkAndGenerateAlert(ItemType itemType) {
         if (itemType.needsRestock()) {
-            // how many units to order so stock goes back above the minimum
             int quantity = itemType.getRequiredRestockQuantity();
-
-            // place the order through the mocked supplier module
             int orderId = SupplierMock.createOrder(itemType, quantity);
 
-            // remember it's on the way, so we don't order again before it arrives
             itemType.addIncoming(quantity);
+            saveItemTypeToDatabase(itemType);
 
             String description = "Low stock alert for " + itemType.getName()
                     + ". Current quantity: " + itemType.getTotalQuantity()
                     + ", minimum quantity: " + itemType.getMinQuantity()
                     + ". Ordered " + quantity + " units (order #" + orderId + ").";
+
             return new Alert(alertIdCounter++, description, itemType);
         }
+
         return null;
     }
 
@@ -444,26 +697,28 @@ public class InventoryController {
             List<Item> itemList = entry.getValue();
             List<Item> toRemove = new ArrayList<>();
 
-            // snapshot quantity BEFORE removal
             int quantityBefore = itemType.getTotalQuantity();
 
             for (Item item : itemList) {
                 if (isDefective(item)) {
                     toRemove.add(item);
+
                     if (item.isInWarehouse()) {
-                        itemType.removeFromWarehouse(1); 
-                         warehouse.removeItem(item);     // <-- add
-                    }else {
+                        itemType.removeFromWarehouse(1);
+                        warehouse.removeItem(item);
+                    } else {
                         itemType.removeFromShelf(1);
                     }
                 }
             }
 
-            itemList.removeAll(toRemove);
+            for (Item item : toRemove) {
+                itemDAO.delete(item.getId());
+            }
 
-            // only alert if:
-            // 1. we actually removed something from this type
-            // 2. quantity crossed the threshold BECAUSE of this removal
+            itemList.removeAll(toRemove);
+            saveItemTypeToDatabase(itemType);
+
             if (!toRemove.isEmpty()) {
                 int quantityAfter = itemType.getTotalQuantity();
                 boolean wasOkBefore = quantityBefore >= itemType.getMinQuantity();
@@ -472,6 +727,7 @@ public class InventoryController {
                 if (wasOkBefore && isLowNow) {
                     Alert alert = checkAndGenerateAlert(itemType);
                     if (alert != null) {
+                        saveAlertToDatabase(alert);
                         alerts.add(alert);
                     }
                 }
@@ -516,10 +772,6 @@ public class InventoryController {
         return result;
     }
 
-    /**
-     * מחזיר מיפוי של קטגוריה -> ItemTypes ששייכים אליה. זה שימושי גם אם
-     * CategoryInventoryReport עצמו עדיין פשוט.
-     */
     public Map<Category, List<ItemType>> getInventoryByCategories(List<Integer> categoryIds) {
         Map<Category, List<ItemType>> result = new HashMap<>();
 
@@ -588,9 +840,6 @@ public class InventoryController {
         for (ItemType itemType : itemTypes.values()) {
             if (itemType.needsRestock()) {
                 int missingAmount = itemType.getMinQuantity() - itemType.getTotalQuantity();
-
-                // בגלל שה-alert מופעל גם כאשר total == min,
-                // אני מוודא שתמיד נזמין לפחות 1 במקרה כזה
                 int quantityToOrder = Math.max(1, missingAmount + 1);
 
                 itemsToOrder.put(itemType, quantityToOrder);
@@ -610,14 +859,10 @@ public class InventoryController {
     public List<Alert> getAllAlerts() {
         List<Alert> alerts = new ArrayList<>();
 
-        for (ItemType itemType : itemTypes.values()) {
-            if (itemType.needsRestock()) {
-                String description
-                        = "Low stock alert for " + itemType.getName()
-                        + ". Current quantity: " + itemType.getTotalQuantity()
-                        + ", minimum quantity: " + itemType.getMinQuantity();
-
-                alerts.add(new Alert(alertIdCounter++, description, itemType));
+        for (AlertDTO dto : alertDAO.findAll()) {
+            ItemType itemType = itemTypes.get(dto.getItemTypeId());
+            if (itemType != null) {
+                alerts.add(new Alert(dto.getId(), dto.getDescription(), itemType));
             }
         }
 
@@ -625,16 +870,159 @@ public class InventoryController {
     }
 
     public Alert getAlertForItemType(int itemTypeId) {
+        List<AlertDTO> alertDTOs = alertDAO.findByItemTypeId(itemTypeId);
+
+        if (!alertDTOs.isEmpty()) {
+            AlertDTO dto = alertDTOs.get(alertDTOs.size() - 1);
+            ItemType itemType = itemTypes.get(dto.getItemTypeId());
+
+            if (itemType != null) {
+                return new Alert(dto.getId(), dto.getDescription(), itemType);
+            }
+        }
+
         ItemType itemType = itemTypes.get(itemTypeId);
         if (itemType == null || !itemType.needsRestock()) {
             return null;
         }
 
-        String description
-                = "Low stock alert for " + itemType.getName()
+        String description = "Low stock alert for " + itemType.getName()
                 + ". Current quantity: " + itemType.getTotalQuantity()
                 + ", minimum quantity: " + itemType.getMinQuantity();
 
-        return new Alert(alertIdCounter++, description, itemType);
+        Alert alert = new Alert(alertIdCounter++, description, itemType);
+        saveAlertToDatabase(alert);
+
+        return alert;
     }
+
+    // =========================================================
+    // DATABASE SAVE HELPERS
+    // =========================================================
+    private void saveAllCategoriesToDatabase() {
+        for (Category category : categoryController.getAllCategories()) {
+            Integer parentId = category.getParent() == null
+                    ? null
+                    : category.getParent().getId();
+
+            categoryDAO.save(new CategoryDTO(
+                    category.getId(),
+                    category.getName(),
+                    parentId
+            ));
+        }
+    }
+
+    private void saveItemTypeToDatabase(ItemType itemType) {
+        itemTypeDAO.save(new ItemTypeDTO(
+                itemType.getId(),
+                itemType.getName(),
+                itemType.getStoreLocation().getShelfNum(),
+                itemType.getStoreLocation().getAisleNum(),
+                itemType.getShelfQuantity(),
+                itemType.getWarehouseQuantity(),
+                itemType.getMinQuantity(),
+                itemType.getCostPrice(),
+                itemType.getSellingPrice(),
+                itemType.getCategory().getId(),
+                itemType.getManufacturer()
+        ));
+    }
+
+    private void saveItemToDatabase(Item item) {
+        itemDAO.save(new ItemDTO(
+                item.getId(),
+                item.getItemType().getId(),
+                item.getSellDiscount(),
+                item.getBuyDiscount(),
+                item.getItemPrice(),
+                item.getItemSellPrice(),
+                item.getExpirationDate() == null ? null : item.getExpirationDate().toString(),
+                item.isDamaged(),
+                item.isInWarehouse()
+        ));
+    }
+
+    private void saveAlertToDatabase(Alert alert) {
+        alertDAO.save(new AlertDTO(
+                alert.getId(),
+                alert.getDescription(),
+                alert.getItemType().getId()
+        ));
+    }
+
+    private void saveAllDiscountsToDatabase() {
+        for (Discount discount : discountController.getAllDiscounts()) {
+            if (discount instanceof ItemsDiscount) {
+                ItemsDiscount itemsDiscount = (ItemsDiscount) discount;
+
+                discountDAO.save(new DiscountDTO(
+                        discount.getId(),
+                        "ITEM",
+                        discount.getPercentage(),
+                        discount.getStartDate().toString(),
+                        discount.getEndDate().toString()
+                ));
+
+                for (ItemType itemType : itemsDiscount.getTargetItems()) {
+                    discountDAO.saveItemTarget(discount.getId(), itemType.getId());
+                }
+
+            } else if (discount instanceof CategoryDiscount) {
+                CategoryDiscount categoryDiscount = (CategoryDiscount) discount;
+
+                discountDAO.save(new DiscountDTO(
+                        discount.getId(),
+                        "CATEGORY",
+                        discount.getPercentage(),
+                        discount.getStartDate().toString(),
+                        discount.getEndDate().toString()
+                ));
+
+                for (Category category : categoryDiscount.getTargetCategories()) {
+                    discountDAO.saveCategoryTarget(discount.getId(), category.getId());
+                }
+            }
+        }
+    }
+
+    public void initializeSimpleData() {
+    // currently no simple data initialization here
+    // keep this empty unless you want to move your SimpleData logic here
+}
+
+public void clearSystemData() {
+    clearDatabase();
+
+    categoryController.loadCategories(new ArrayList<>());
+    discountController.loadDiscounts(new ArrayList<>());
+
+    itemTypes.clear();
+    items.clear();
+
+    warehouse = new Warehouse(1, "Main Warehouse", 10000);
+
+    itemTypeIdCounter = 1;
+    itemIdCounter = 1;
+    reportIdCounter = 1;
+    alertIdCounter = 1;
+}
+
+private void clearDatabase() {
+    try (java.sql.Connection connection =
+                 adss.inventory.repository.DatabaseManager.getConnection();
+         java.sql.Statement statement = connection.createStatement()) {
+
+        statement.executeUpdate("DELETE FROM item_discount_targets");
+        statement.executeUpdate("DELETE FROM category_discount_targets");
+        statement.executeUpdate("DELETE FROM alerts");
+        statement.executeUpdate("DELETE FROM items");
+        statement.executeUpdate("DELETE FROM discounts");
+        statement.executeUpdate("DELETE FROM item_types");
+        statement.executeUpdate("DELETE FROM categories");
+
+    } catch (java.sql.SQLException e) {
+        throw new RuntimeException("Failed to clear database", e);
+    }
+}
 }

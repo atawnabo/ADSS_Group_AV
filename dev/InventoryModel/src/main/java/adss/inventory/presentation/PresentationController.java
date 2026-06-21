@@ -7,19 +7,20 @@ import java.util.Map;
 import adss.inventory.domain.Alert;
 import adss.inventory.domain.Category;
 import adss.inventory.domain.CategoryInventoryReport;
+import adss.inventory.domain.DefectiveItemReport;
 import adss.inventory.domain.Discount;
 import adss.inventory.domain.Item;
 import adss.inventory.domain.ItemType;
-import adss.inventory.domain.DefectiveItemReport;
 import adss.inventory.domain.PurchasingReport;
 import adss.inventory.service.ServiceController;
+
 
 public class PresentationController {
     private final ServiceController serviceController;
 
     public PresentationController() {
-        this.serviceController = new ServiceController();
-    }
+    this.serviceController = new ServiceController();
+}
 
     // ==================== CATEGORY ====================
 
@@ -195,5 +196,17 @@ public class PresentationController {
 
 public List<Alert> removeAllDefectiveItems() {
     return serviceController.getItemController().removeAllDefectiveItems();
+}
+
+public void loadDataFromDatabase() {
+    serviceController.loadDataFromDatabase();
+}
+
+public void initializeSimpleData() {
+    serviceController.initializeSimpleData();
+}
+
+public void clearSystemData() {
+    serviceController.clearSystemData();
 }
 }
