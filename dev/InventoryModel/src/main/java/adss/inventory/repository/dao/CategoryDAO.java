@@ -8,8 +8,8 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
+import adss.inventory.dto.CategoryDTO;
 import adss.inventory.repository.DatabaseManager;
-import adss.inventory.repository.dto.CategoryDTO;
 
 public class CategoryDAO {
 

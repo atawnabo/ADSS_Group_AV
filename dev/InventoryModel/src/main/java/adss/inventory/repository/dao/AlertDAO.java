@@ -7,8 +7,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import adss.inventory.dto.AlertDTO;
 import adss.inventory.repository.DatabaseManager;
-import adss.inventory.repository.dto.AlertDTO;
 
 public class AlertDAO {
 

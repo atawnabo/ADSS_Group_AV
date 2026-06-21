@@ -1,4 +1,4 @@
-package adss.inventory.repository.dto;
+package adss.inventory.dto;
 
 public class AlertDTO {
 

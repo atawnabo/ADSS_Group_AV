@@ -23,6 +23,7 @@ public class CLI {
     private final PresentationController controller;
     private final Scanner scanner;
     private final DataLoader dataLoader;
+    private static final int DONE = -1;
 
     public CLI() {
         this.controller = new PresentationController();
@@ -44,22 +45,15 @@ public class CLI {
         System.out.println(" Welcome to Inventory Management ");
         System.out.println("==================================");
 
-        // ask user to load sample data
-        System.out.println("\n1. Load sample data");
-        System.out.println("2. Start empty");
-        System.out.println("3. Load previous data from database");
+        System.out.println("\n1. Start empty");
+        System.out.println("2. Load previous data from database");
         int loadChoice = readInt("Choose: ");
 
         if (loadChoice == 1) {
             controller.clearSystemData();
-            dataLoader.load();
-            System.out.println("✓ Sample data loaded successfully");
-
-        } else if (loadChoice == 2) {
-            controller.clearSystemData();
             System.out.println("✓ Starting with empty system");
 
-        } else if (loadChoice == 3) {
+        } else if (loadChoice == 2) {
             controller.loadDataFromDatabase();
             System.out.println("✓ Previous data loaded from database");
 
@@ -96,6 +90,7 @@ public class CLI {
 
         scanner.close();
     }
+
 
     private void printMainMenu() {
         System.out.println("\n========== MAIN MENU ==========");
@@ -510,8 +505,9 @@ public class CLI {
         // print all alerts ONCE after everything is done
         if (!alerts.isEmpty()) {
             System.out.println("\n⚠ LOW STOCK ALERTS:");
-            for (Alert alert : alerts)
+            for (Alert alert : alerts) {
                 System.out.println(alert);
+            }
         }
     }
 
@@ -752,7 +748,7 @@ public class CLI {
         LocalDate endDate = readDate("Enter end date (yyyy-mm-dd): ");
 
         List<Integer> itemIds = new ArrayList<>();
-        System.out.println("Select item types (enter 0 when done):");
+        System.out.println("Select item types (enter -1 when done):");   // 0 -> -1
 
         while (true) {
             int id = selectItemType();
@@ -760,7 +756,7 @@ public class CLI {
                 break;
             }
             itemIds.add(id);
-            System.out.println("  [+] Added. Select another or 0 to finish.");
+            System.out.println("  [+] Added. Select another or -1 to finish.");  // confirmation restored
         }
 
         if (itemIds.isEmpty()) {
@@ -779,15 +775,15 @@ public class CLI {
         LocalDate endDate = readDate("Enter end date (yyyy-mm-dd): ");
 
         List<Integer> categoryIds = new ArrayList<>();
-        System.out.println("Select categories (enter 0 when done):");
+        System.out.println("Select categories (enter 0 when done):");   // 0 — matches "0. Cancel"
 
         while (true) {
             int id = selectCategory();
-            if (id == -1) {
+            if (id == -1) {        // selectCategory returns -1 when the user types 0
                 break;
             }
             categoryIds.add(id);
-            System.out.println("  [+] Added. Select another or 0 to finish.");
+            System.out.println("  [+] Added. Select another or 0 to finish.");   // 0
         }
 
         if (categoryIds.isEmpty()) {
@@ -910,8 +906,9 @@ public class CLI {
         System.out.println("Select categories (0 to finish):");
         while (true) {
             int id = selectCategory();
-            if (id == -1)
+            if (id == -1) {
                 break;
+            }
             categoryIds.add(id);
             System.out.println("  [+] Added. Select another or 0 to finish.");
         }

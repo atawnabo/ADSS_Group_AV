@@ -7,8 +7,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import adss.inventory.dto.ItemDTO;
 import adss.inventory.repository.DatabaseManager;
-import adss.inventory.repository.dto.ItemDTO;
 
 public class ItemDAO {
 

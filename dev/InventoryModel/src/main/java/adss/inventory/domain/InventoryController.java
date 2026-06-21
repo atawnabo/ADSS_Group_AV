@@ -13,11 +13,11 @@ import adss.inventory.repository.dao.CategoryDAO;
 import adss.inventory.repository.dao.DiscountDAO;
 import adss.inventory.repository.dao.ItemDAO;
 import adss.inventory.repository.dao.ItemTypeDAO;
-import adss.inventory.repository.dto.AlertDTO;
-import adss.inventory.repository.dto.CategoryDTO;
-import adss.inventory.repository.dto.DiscountDTO;
-import adss.inventory.repository.dto.ItemDTO;
-import adss.inventory.repository.dto.ItemTypeDTO;
+import adss.inventory.dto.AlertDTO;
+import adss.inventory.dto.CategoryDTO;
+import adss.inventory.dto.DiscountDTO;
+import adss.inventory.dto.ItemDTO;
+import adss.inventory.dto.ItemTypeDTO;
 
 public class InventoryController {
 

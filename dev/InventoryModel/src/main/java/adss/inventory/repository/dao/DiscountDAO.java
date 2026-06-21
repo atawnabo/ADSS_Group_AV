@@ -7,8 +7,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import adss.inventory.dto.DiscountDTO;
 import adss.inventory.repository.DatabaseManager;
-import adss.inventory.repository.dto.DiscountDTO;
 
 public class DiscountDAO {
 

@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 public class DatabaseManager {
 
-    private static final String DB_URL = "jdbc:sqlite:inventory.db";
+    private static  String DB_URL = "jdbc:sqlite:inventory.db";
 
     private DatabaseManager() {
     }
@@ -15,5 +15,9 @@ public class DatabaseManager {
         Connection connection = DriverManager.getConnection(DB_URL);
         connection.createStatement().execute("PRAGMA foreign_keys = ON");
         return connection;
+    }
+       // Lets tests point at a different database file so they don't touch the real one.
+    public static void setDatabasePath(String path) {
+        DB_URL = "jdbc:sqlite:" + path;
     }
 }

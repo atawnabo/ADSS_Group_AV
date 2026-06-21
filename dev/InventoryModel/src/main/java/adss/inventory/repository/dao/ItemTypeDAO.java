@@ -8,8 +8,8 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
+import adss.inventory.dto.ItemTypeDTO;
 import adss.inventory.repository.DatabaseManager;
-import adss.inventory.repository.dto.ItemTypeDTO;
 
 public class ItemTypeDAO {
 
