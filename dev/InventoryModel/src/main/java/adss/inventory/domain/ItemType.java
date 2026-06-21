@@ -14,7 +14,7 @@ public class ItemType {
     private int sellingPrice;
     private Category category;
     private String manufacturer;
-    private int incomingQuantity = 0;   // units already ordered, not yet arrived
+    private int incomingQuantity = 0; // units already ordered, not yet arrived
 
     public ItemType(int id, String name, Location storeLocation,
             int shelfQuantity, int warehouseQuantity, int minQuantity,
@@ -229,5 +229,12 @@ public class ItemType {
 
     public int getIncomingQuantity() {
         return incomingQuantity;
+    }
+
+    public void setIncomingQuantity(int incomingQuantity) {
+        if (incomingQuantity < 0) {
+            throw new IllegalArgumentException("Incoming quantity must be non-negative");
+        }
+        this.incomingQuantity = incomingQuantity;
     }
 }

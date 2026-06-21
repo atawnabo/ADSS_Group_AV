@@ -12,6 +12,7 @@ public class CategoryController {
 
     /**
      * Adds a root category (no parent) to the system.
+     * 
      * @param name the name of the new category
      * @return "OK" if added successfully
      */
@@ -23,7 +24,8 @@ public class CategoryController {
 
     /**
      * Adds a sub-category under an existing parent category.
-     * @param name the name of the new sub-category
+     * 
+     * @param name     the name of the new sub-category
      * @param parentId the ID of the parent category
      * @return "OK" if added, "ERROR" if parent not found
      */
@@ -40,6 +42,7 @@ public class CategoryController {
 
     /**
      * Returns all categories in the system as a list.
+     * 
      * @return list of all Category objects
      */
     public List<Category> getAllCategories() {
@@ -48,6 +51,7 @@ public class CategoryController {
 
     /**
      * Finds and returns a single category by its ID.
+     * 
      * @param id the category ID to look up
      * @return the Category if found, null otherwise
      */
@@ -58,6 +62,7 @@ public class CategoryController {
     /**
      * Returns all root categories (categories with no parent).
      * Used for tree display in presentation layer.
+     * 
      * @return list of root Category objects
      */
     public List<Category> getRootCategories() {
@@ -67,5 +72,19 @@ public class CategoryController {
                 roots.add(cat);
         }
         return roots;
+    }
+
+    public void loadCategories(List<Category> loadedCategories) {
+        categories.clear();
+
+        int maxId = 0;
+        for (Category category : loadedCategories) {
+            categories.put(category.getId(), category);
+            if (category.getId() > maxId) {
+                maxId = category.getId();
+            }
+        }
+
+        categoryIdCounter = maxId + 1;
     }
 }
