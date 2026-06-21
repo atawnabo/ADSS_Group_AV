@@ -1,10 +1,13 @@
 package superli.presentation;
+import superli.data.DatabaseManager;
 import superli.service.EmployeeService;
 import superli.service.ShiftService;
 import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
+
+        DatabaseManager.initializeDatabase();
 
         EmployeeService employeeService = new EmployeeService();
         ShiftService shiftService = new ShiftService();

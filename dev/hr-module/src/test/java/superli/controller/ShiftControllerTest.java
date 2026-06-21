@@ -2,6 +2,8 @@ package superli.controller;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import superli.data.DatabaseManager;
 import superli.domain.*;
 
 import java.time.LocalDate;
@@ -19,6 +21,8 @@ public class ShiftControllerTest {
 
     @BeforeEach
     public void setUp() {
+        DatabaseManager.initializeDatabase();
+        DatabaseManager.clearDatabase();
         shiftController = new ShiftController();
         testDate = LocalDate.of(2026, 4, 15);
         testBranch = new StoreBranch(1, "Main Branch", "Beer Sheva");

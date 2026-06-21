@@ -3,13 +3,20 @@ package superli.controller;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
+import superli.data.EmployeeDAO;
+import superli.data.ShiftDAO;
 import superli.domain.*;
 
 public class ShiftController {
     private List<Shift> shifts ;
+    private ShiftDAO shiftDAO;
+    private EmployeeDAO employeeDAO;
 
     public ShiftController(){
         this.shifts = new ArrayList<>();
+        this.shiftDAO = new ShiftDAO();
+        this.employeeDAO = new EmployeeDAO();
     }
 
     public void createShift(LocalDate date , ShiftType shiftType, StoreBranch branch){
@@ -18,26 +25,40 @@ public class ShiftController {
             throw new IllegalArgumentException("Shift already exists");
         }
         Shift newShift = new Shift(date, shiftType, branch);
+        shiftDAO.save(newShift);
         shifts.add(newShift);
-         if (branch != null) {
-        branch.addShift(newShift);
-    }
+
+        if (branch != null) {
+            branch.addShift(newShift);
+        }
     }
 
     public Shift getShift(LocalDate date , ShiftType shiftType, StoreBranch branch){
-        for(Shift shift : shifts){
-            if(shift.getDate().isEqual(date) && shift.getShiftType()==shiftType && shift.getBranch().getBranchId() == branch.getBranchId()){
-                return shift ;
-            }
+        if (date == null || shiftType == null || branch == null) {
+            return null;
         }
-        return null ;
+        for (Shift shift : shifts) {
+            if (shift.getDate().isEqual(date)
+                && shift.getShiftType() == shiftType
+                && shift.getBranch().getBranchId() == branch.getBranchId()) {
+                    return shift;
+                }
+        }
+
+        Shift shiftFromDatabase = shiftDAO.findByDetails(date, shiftType, branch);
+        if (shiftFromDatabase != null) {
+            shifts.add(shiftFromDatabase);
+        }
+        return shiftFromDatabase;
     }
+
     public void addRequiredRole(LocalDate date ,ShiftType shiftType ,Role role ,int amount, StoreBranch branch){
         Shift shift = getShift(date, shiftType, branch) ;
         if(shift == null){
             throw new IllegalArgumentException("Shift does not exists");
         }
         shift.addRequiredRole(role,amount);
+        shiftDAO.save(shift);
     }
 
    public void addAssignment(LocalDate date, ShiftType shiftType, ShiftAssignment assignment, StoreBranch branch) {
@@ -55,8 +76,10 @@ public class ShiftController {
     );
 }
 
-    public List<Shift> getShifts(){
-        return new ArrayList<>(shifts) ;
+    public List<Shift> getShifts() {
+        shifts.clear();
+        shifts.addAll(shiftDAO.findAll());
+        return new ArrayList<>(shifts);
     }
 
     public void assignEmployeeToShift(Employee employee ,LocalDate date ,ShiftType shiftType ,Role role,boolean specialApproval, StoreBranch branch){
@@ -100,9 +123,11 @@ public class ShiftController {
         if(currentAmountOfRole >= requiredAmountOfRole){
             throw new IllegalArgumentException("The amount of employees for this role is full !");
         }
+        employeeDAO.save(employee);
         ShiftAssignment assignment = new ShiftAssignment(employee, role, date, shiftType);
         shift.addAssignment(assignment);
         employee.addShift(assignment);
+        shiftDAO.save(shift);
     }
     
   public boolean hasStockKeeper(LocalDate date, ShiftType shiftType, StoreBranch branch) {
