@@ -31,11 +31,12 @@ public class EmployeeUI {
                 System.out.println("2. Login");
                 System.out.println("3. Exit");
             } else {
-                System.out.println("1. Enter availability");
-                System.out.println("2. View my shifts");
-                System.out.println("3. View my roles");
-                System.out.println("4. Logout");
-                System.out.println("5. Exit");
+                System.out.println("1. Update personal details");
+                System.out.println("2. Enter availability");
+                System.out.println("3. View my shifts");
+                 System.out.println("4. View my roles");
+                 System.out.println("5. Logout");
+                 System.out.println("6. Exit");
             }
 
             System.out.print("Choose option: ");
@@ -61,26 +62,32 @@ public class EmployeeUI {
                 {
                 switch (input) {
                     case "1":
-                        enterAvailability();
-                        break;
-                    case "2":
-                        viewMyShifts();
-                        break;
+                updatePersonalDetails();
+                           break;
+                     case "2":
+                   enterAvailability();
+                      break;
                     case "3":
-                        viewMyRoles();
-                        break;
-                    case "4":
-                        logout();
-                        break;
-                    case "5":
-                        running = false;
-                        break;
-                    default:
-                        System.out.println("Invalid option");
-                }
-            }
+                 viewMyShifts();
+                    break;
+                  case "4":
+                   viewMyRoles();
+                     break;
+                  case "5":
+                     logout();
+                       break;
+                      case "6":
+                      running = false;
+                           break;
+                       default:
+        System.out.println("Invalid option");
+      }
         }
-    }
+
+        }
+
+        }
+    
 
     private void register() {
         try {
@@ -195,4 +202,27 @@ public class EmployeeUI {
             }
         }
     }
+    private void updatePersonalDetails() {
+    try {
+        System.out.print("Enter new name: ");
+        String name = scanner.nextLine();
+
+        System.out.print("Enter new bank name: ");
+        String bankName = scanner.nextLine();
+
+        System.out.print("Enter new account number: ");
+        int accountNumber = Integer.parseInt(scanner.nextLine());
+
+        boolean updated = service.updatePersonalDetails( loggedInId,name, bankName, accountNumber);
+
+        if (updated) {
+            System.out.println("Personal details updated successfully");
+        } else {
+            System.out.println("Update failed");
+        }
+
+    } catch (Exception e) {
+        System.out.println("Error: " + e.getMessage());
+    }
+}
 }

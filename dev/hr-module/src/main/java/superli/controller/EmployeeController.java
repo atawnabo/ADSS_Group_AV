@@ -110,7 +110,7 @@ public class EmployeeController {
     }
 
     public List<ShiftAssignment> viewScheduledShifts(int employeeId) {
-        Employee employee = employees.get(employeeId);
+     Employee employee = getEmployee(employeeId);
 
         if (employee == null) {
             System.out.println("Employee not found");
@@ -186,7 +186,7 @@ public class EmployeeController {
     }
 
     public List<Role> getEmployeeRoles(int employeeId) {
-        Employee employee = employees.get(employeeId);
+       Employee employee = getEmployee(employeeId);
 
         if (employee == null) {
             System.out.println("Employee not found");
@@ -197,7 +197,7 @@ public class EmployeeController {
     }
 
     public EmployeeTerms getEmployeeTerms(int employeeId) {
-        Employee employee = employees.get(employeeId);
+     Employee employee = getEmployee(employeeId);
 
         if (employee == null) {
             System.out.println("Employee not found");
@@ -208,7 +208,7 @@ public class EmployeeController {
     }
 
     public boolean register(int id, String password) {
-        Employee employee = employees.get(id);
+         Employee employee = getEmployee(id);
 
         if (employee == null || password == null || password.isEmpty()) {
             return false;
@@ -219,7 +219,7 @@ public class EmployeeController {
     }
 
     public boolean login(int id, String password) {
-        Employee employee = employees.get(id);
+        Employee employee = getEmployee(id);
         if (employee == null) {
             return false;
         }
@@ -233,7 +233,8 @@ public class EmployeeController {
     }
 
     public boolean logout(int id) {
-        Employee employee = employees.get(id);
+            Employee employee = getEmployee(id);
+
 
         if (employee == null) {
             return false;
@@ -287,11 +288,7 @@ public class EmployeeController {
 }
 
 
-    public List<Integer> getAvailableDrivers(LocalDate date,
-                                          ShiftType shiftType,
-                                          String licenseType,
-                                          StoreBranch branch) {
-
+public List<Integer> getAvailableDrivers(LocalDate date, ShiftType shiftType,String licenseType,StoreBranch branch) {
     if (date == null) {
         throw new IllegalArgumentException("Date is required");
     }
@@ -349,13 +346,8 @@ public class EmployeeController {
 
     return availableDrivers;
 }
-public boolean updateEmployee(int id,
-                              String name,
-                              String bankName,
-                              int accountNumber,
-                              EmployeeTerms employeeTerms,
-                              StoreBranch branch) {
-    Employee employee = employees.get(id);
+public boolean updateEmployee(int id,String name,String bankName,int accountNumber,EmployeeTerms employeeTerms,StoreBranch branch) {
+    Employee employee = getEmployee(id);
 
     if (employee == null) {
         return false;
@@ -366,16 +358,31 @@ public boolean updateEmployee(int id,
     }
 
     BankAccount bankDetails = new BankAccount(bankName, accountNumber, name);
+
     employee.updateDetails(name, bankDetails, employeeTerms);
 
     StoreBranch oldBranch = employee.getBranch();
+
     if (oldBranch != null && oldBranch.getBranchId() != branch.getBranchId()) {
         oldBranch.removeEmployee(employee);
     }
+
     employee.assignToBranch(branch);
     branch.addEmployee(employee);
+
     employeeDAO.save(employee);
+    employees.put(id, employee);
+
     return true;
+}
+public boolean updatePersonalDetails(int employeeId,  String name,  String bankName,  int accountNumber) {
+    Employee employee = getEmployee(employeeId);
+
+    if (employee == null) {
+        return false;
+    }
+
+    return updateEmployee( employeeId, name, bankName, accountNumber, employee.getEmployeeTerms(), employee.getBranch() );
 }
 
 }

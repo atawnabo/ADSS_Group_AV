@@ -152,11 +152,7 @@ public class ShiftController {
     for (ShiftAssignment assignment : shift.getAssignments()) {
         Employee employee = assignment.getEmployee();
 
-        if (assignment.getRole() == Role.STOCK_KEEPER
-                && employee != null
-                && employee.isActive()
-                && employee.getBranch() != null
-                && employee.getBranch().getBranchId() == shift.getBranch().getBranchId()) {
+        if (assignment.getRole() == Role.STOCK_KEEPER && employee != null&& employee.isActive()  && employee.getBranch() != null && employee.getBranch().getBranchId() == shift.getBranch().getBranchId()) {
             return true;
         }
     }

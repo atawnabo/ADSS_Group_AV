@@ -162,5 +162,10 @@ public boolean updateEmployee(int id,
                               StoreBranch branch) {
     return controller.updateEmployee(id, name, bankName, accountNumber, employeeTerms, branch);
 }
-
+public boolean updatePersonalDetails(int employeeId,
+                                     String name,
+                                     String bankName,
+                                     int accountNumber) {
+    return controller.updatePersonalDetails(employeeId, name, bankName, accountNumber);
+}
 }

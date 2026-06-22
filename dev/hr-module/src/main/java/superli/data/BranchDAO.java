@@ -33,7 +33,7 @@ public class BranchDAO {
 
     public StoreBranch findById(int branchId) {
         String sql =
-                "SELECT branch_id, name, address " +
+                "SELECT שbranch_id, name, address " +
                 "FROM branches " +
                 "WHERE branch_id = ?";
 

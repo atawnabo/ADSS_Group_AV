@@ -1,5 +1,6 @@
 package superli.presentation;
 import superli.domain.Employee;
+import superli.domain.EmployeeTerms;
 import superli.domain.Role;
 import superli.domain.Shift;
 import superli.domain.ShiftAssignment;
@@ -42,8 +43,9 @@ public class ManagerUI {
             System.out.println("3. Assign employee to shift");
             System.out.println("4. Check if shift is valid");
             System.out.println("5. Add employee");
-            System.out.println("6. View shifts");
-            System.out.println("7. Exit");
+           System.out.println("6. View shifts");
+           System.out.println("7. Update employee");
+            System.out.println("8. Exit");
             System.out.print("Choose an option: ");
 
             String input = scanner.nextLine();
@@ -67,15 +69,19 @@ public class ManagerUI {
                 case "6":
                     viewShifts();
                     break;    
-                case "7":
-                    running = false;
-                    System.out.println("Exiting Manager Menu...");
-                    break;
-                default:
-                    System.out.println("Invalid option. Try again.");
-            }
-        }
-    }
+               case "7":
+               updateEmployeeUI();
+                 break;
+                case "8":
+                 running = false;
+                System.out.println("Exiting Manager Menu...");
+                        break;
+               default:
+                 System.out.println("Invalid option. Try again.");
+                   break;
+                        }
+                 }
+                   }
 
     private void createShiftUI() {
         try {
@@ -241,14 +247,53 @@ public class ManagerUI {
 
             roles.add(Role.valueOf(input));
         }
+       Employee employee;
 
-        Employee employee = employeeService.addEmployee(id,name,bankName,accountNumber,roles,new Date(),employmentType,globalSalary,hourlySalary,vacationDays, branch);
+       if (roles.contains(Role.DRIVER)) {
+      System.out.print("Enter driver license type: ");
+      String licenseType = scanner.nextLine();
 
-        if (employee != null) {
-            System.out.println("Employee added successfully");
-        } else {
-            System.out.println("Employee already exists");
-        }
+      employee = employeeService.addDriver(
+            id,
+            name,
+            bankName,
+            accountNumber,
+            roles,
+            new Date(),
+            employmentType,
+            globalSalary,
+            hourlySalary,
+            vacationDays,
+            branch,
+            licenseType
+    );
+   }
+ else 
+    {
+    employee = employeeService.addEmployee(
+            id,
+            name,
+            bankName,
+            accountNumber,
+            roles,
+            new Date(),
+            employmentType,
+            globalSalary,
+            hourlySalary,
+            vacationDays,
+            branch
+    ); 
+}
+
+    if (employee != null) {
+    System.out.println("Employee added successfully");
+} 
+
+else 
+    
+    {
+    System.out.println("Employee already exists");
+}
 
     } catch (Exception e) {
         System.out.println("Error: " + e.getMessage());
@@ -283,6 +328,63 @@ private void viewShifts() {
         }
 
         System.out.println("Valid: " + shift.isShiftValid());
+    }
+}
+public void updateEmployeeUI() {
+    try {
+        System.out.print("Enter employee ID to update: ");
+        int id = Integer.parseInt(scanner.nextLine());
+
+        Employee employee = employeeService.getEmployee(id);
+
+        if (employee == null) {
+            System.out.println("Employee not found");
+            return;
+        }
+
+        System.out.print("Enter new name: ");
+        String name = scanner.nextLine();
+
+        StoreBranch branch = readBranch();
+
+        System.out.print("Enter new bank name: ");
+        String bankName = scanner.nextLine();
+
+        System.out.print("Enter new account number: ");
+        int accountNumber = Integer.parseInt(scanner.nextLine());
+
+        System.out.print("Enter employment type (hourly/global): ");
+        String employmentType = scanner.nextLine();
+
+        double hourlySalary = 0;
+        double globalSalary = 0;
+
+        if (employmentType.equalsIgnoreCase("hourly")) {
+            System.out.print("Enter hourly salary: ");
+            hourlySalary = Double.parseDouble(scanner.nextLine());
+        } else if (employmentType.equalsIgnoreCase("global")) {
+            System.out.print("Enter global salary: ");
+            globalSalary = Double.parseDouble(scanner.nextLine());
+        } else {
+            System.out.println("Invalid employment type");
+            return;
+        }
+
+        System.out.print("Enter vacation days: ");
+        int vacationDays = Integer.parseInt(scanner.nextLine());
+
+        EmployeeTerms employeeTerms = new EmployeeTerms(new Date(), employmentType, globalSalary,hourlySalary,vacationDays);
+
+        boolean updated = employeeService.updateEmployee(id,name, bankName, accountNumber,employeeTerms, branch  );
+
+        if (updated) {
+            System.out.println("Employee updated successfully.");
+        } else {
+            System.out.println("Employee update failed.");
+        }
+
+    } catch (Exception e) {
+        System.out.println("Error: " + e.getMessage());
     }
 }
    
