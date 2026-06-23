@@ -12,7 +12,7 @@ import superli.service.ShiftService;
 
 public class Main {
 
-    // 1. הטריק: מחלקה פנימית שמגנה על הסטרים המרכזי מפני סגירה
+    
     private static class UnclosableInputStream extends InputStream {
         private final InputStream rawStream;
 
@@ -32,13 +32,12 @@ public class Main {
 
         @Override
         public void close() throws IOException {
-            // פקודת הסגירה מגיעה לכאן - ואנחנו פשוט מתעלמים ממנה!
-            // זה שומר על הצינור המרכזי פתוח לרווחה עבור המניו הראשי.
+            
         }
     }
 
     public static void main(String[] args) {
-        // 2. מחליפים את הצינור של המערכת בצינור המוגן שלנו, ממש בשורה הראשונה!
+       
         System.setIn(new UnclosableInputStream(System.in));
 
         adss.inventory.repository.DatabaseManager.setDatabasePath("company.db");
@@ -82,9 +81,7 @@ public class Main {
         scanner.close();
     }
 
-    /**
-     * Launches the Inventory Module without modifying its original code.
-     */
+    
     private static void launchInventoryModule() {
         System.out.println("\n[ Entering Inventory Module... ]");
         CLI inventoryCLI = new CLI();
@@ -92,9 +89,7 @@ public class Main {
         System.out.println("[ Exited Inventory Module. Returning to Main System Menu. ]\n");
     }
 
-    /**
-     * Launches the HR Module using the exact logic provided by your partner.
-     */
+    
     private static void launchHRModule(Scanner scanner) {
         System.out.println("\n[ Entering Human Resources Module... ]");
 
