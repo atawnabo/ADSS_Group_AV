@@ -353,24 +353,24 @@ public void updateEmployeeUI() {
         System.out.print("Enter new account number: ");
         int accountNumber = Integer.parseInt(scanner.nextLine());
 
-        System.out.print("Enter employment type (hourly/global): ");
+        System.out.print("Enter new employment type (hourly/global): ");
         String employmentType = scanner.nextLine();
 
         double hourlySalary = 0;
         double globalSalary = 0;
 
         if (employmentType.equalsIgnoreCase("hourly")) {
-            System.out.print("Enter hourly salary: ");
+            System.out.print("Enter new hourly salary: ");
             hourlySalary = Double.parseDouble(scanner.nextLine());
         } else if (employmentType.equalsIgnoreCase("global")) {
-            System.out.print("Enter global salary: ");
+            System.out.print("Enter new global salary: ");
             globalSalary = Double.parseDouble(scanner.nextLine());
         } else {
             System.out.println("Invalid employment type");
             return;
         }
 
-        System.out.print("Enter vacation days: ");
+        System.out.print("Enter new vacation days: ");
         int vacationDays = Integer.parseInt(scanner.nextLine());
 
         EmployeeTerms employeeTerms = new EmployeeTerms(new Date(), employmentType, globalSalary,hourlySalary,vacationDays);

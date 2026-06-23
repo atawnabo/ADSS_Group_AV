@@ -363,12 +363,20 @@ public boolean updateEmployee(int id,String name,String bankName,int accountNumb
 
     StoreBranch oldBranch = employee.getBranch();
 
-    if (oldBranch != null && oldBranch.getBranchId() != branch.getBranchId()) {
-        oldBranch.removeEmployee(employee);
-    }
+if (oldBranch != null
+        && oldBranch.getBranchId() != branch.getBranchId()
+        && !employee.getShiftScheduled().isEmpty()) {
+    throw new IllegalArgumentException(
+            "Cannot change branch for employee with assigned shifts"
+    );
+}
 
-    employee.assignToBranch(branch);
-    branch.addEmployee(employee);
+if (oldBranch != null && oldBranch.getBranchId() != branch.getBranchId()) {
+    oldBranch.removeEmployee(employee);
+}
+
+employee.assignToBranch(branch);
+branch.addEmployee(employee);
 
     employeeDAO.save(employee);
     employees.put(id, employee);

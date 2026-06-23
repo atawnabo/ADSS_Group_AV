@@ -1,4 +1,4 @@
-package superli.service;
+package superli.mock;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -7,6 +7,8 @@ import superli.domain.Employee;
 import superli.domain.Role;
 import superli.domain.ShiftType;
 import superli.domain.StoreBranch;
+import superli.service.EmployeeService;
+import superli.service.ShiftService;
 
 public class TransportMock {
 
