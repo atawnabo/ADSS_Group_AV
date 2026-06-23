@@ -1,11 +1,26 @@
-
-Group members: 
+Group members:
 
 -	Bothaina Alatawna : 326014875
 -	Zain Yaseen : 213910136
 -	Hadi Aben Hmad - 326096476
 -	Renad Abu Shareb - 326122272
 
+InventoryModel:
+
+How to run:
+  java -jar adss2025_v02.jar
+  On startup choose: 1) load from database., 2) start empty.
+
+Built with:
+  - Java 17
+  - Maven
+
+Libraries:
+  - sqlite-jdbc 3.x  (SQLite database engine)
+  - JUnit 5          (unit & integration tests)
+
+Database:
+  - Data is stored locally in inventory.db (SQLite).
 
 4 - Design Changes and Architectural Justifications
 
@@ -92,5 +107,3 @@ System Assumptions:
 6.	The Employees module can return available drivers according to date, shift type, branch, and required license type.
 7.	When a delivery is expected in a shift, an active Stock Keeper must be assigned to the same shift and branch.
 8.	If data from the Transport module is needed for testing and the real module is unavailable, Transport Mock may be used.
-
-
