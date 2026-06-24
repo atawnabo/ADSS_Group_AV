@@ -1,7 +1,7 @@
 ADSS Assignment 2 — Inventory Module
 
 Group members:
-  - Hadi Aben Hamd   ID: 326096476
+  - Hadi Aben Hmad   ID: 326096476
   - Renad Abu Shareb   ID: 326122272
   
 How to run:
