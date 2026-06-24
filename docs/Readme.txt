@@ -15,6 +15,8 @@ Modeling tools:
   - draw.io (diagrams.net) — used for all UML diagrams
     (use case, class and sequence )
 
+Note on diagrams: In addition to the merged class diagram (which shows the full integrated model in one view), we also include each diagram separately, on its own page. The combined diagram is large and dense, so the individual diagrams are provided for better readability and easier review of each part.
+
 Built with:
   - Java 17
   - Maven
