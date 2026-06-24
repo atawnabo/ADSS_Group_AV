@@ -11,6 +11,10 @@ How to run:
   java -jar adss2025_v02.jar
   On startup choose: 1) load from database., 2) start empty.
 
+Modeling tools:
+  - draw.io (diagrams.net) — used for all UML diagrams
+    (use case, class and sequence )
+
 Built with:
   - Java 17
   - Maven
